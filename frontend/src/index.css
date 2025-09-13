@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --cg-bg: 15 15 18;
+    /* near-black */
+    --cg-card: 24 24 27;
+    /* neutral-900 */
+    --cg-muted: 161 161 170;
+    /* zinc-400 */
+    --cg-primary: 14 165 233;
+    /* sky-500 */
+    --cg-accent: 234 179 8;
+    /* yellow-500 */
+    --cg-text: 255 255 255;
+  }
+
+  .theme-light {
+    --cg-bg: 250 250 250;
+    --cg-card: 255 255 255;
+    --cg-muted: 82 82 91;
+    --cg-primary: 2 132 199;
+    --cg-accent: 202 138 4;
+    --cg-text: 17 24 39;
+  }
+
+  body {
+    @apply antialiased bg-[rgb(var(--cg-bg))] text-[rgb(var(--cg-text))];
+  }
+
+  /* Hide scrollbars globally */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+  }
+
+  *::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
+}
+
+@layer components {
+  .cg-card {
+    @apply bg-[rgb(var(--cg-card))]/90 border border-neutral-300 dark:border-neutral-800 rounded-2xl backdrop-blur;
+  }
+
+  .cg-input {
+    @apply bg-[rgb(var(--cg-card))]/90 border border-neutral-800 rounded-full px-4 py-2 outline-none focus:border-neutral-600;
+  }
+
+  .cg-chip {
+    @apply px-2 py-1 rounded-full bg-[rgb(var(--cg-card))]/90 border border-neutral-300 dark:border-neutral-800 text-xs;
+  }
+
+  /* Hide scrollbars for all browsers */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+  }
+}
