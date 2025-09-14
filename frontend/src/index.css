@@ -27,7 +27,7 @@
   }
 
   body {
-    @apply antialiased bg-[rgb(var(--cg-bg))] text-[rgb(var(--cg-text))];
+    @apply antialiased bg-cg-bg text-cg-text transition-colors duration-200;
   }
 
   /* Hide scrollbars globally */
@@ -43,15 +43,15 @@
 
 @layer components {
   .cg-card {
-    @apply bg-[rgb(var(--cg-card))]/90 border border-neutral-300 dark:border-neutral-800 rounded-2xl backdrop-blur;
+    @apply bg-cg-card/90 border border-neutral-300 dark:border-neutral-800 rounded-2xl backdrop-blur transition-colors duration-200;
   }
 
   .cg-input {
-    @apply bg-[rgb(var(--cg-card))]/90 border border-neutral-800 rounded-full px-4 py-2 outline-none focus:border-neutral-600;
+    @apply bg-cg-card/90 border border-neutral-300 dark:border-neutral-800 rounded-full px-4 py-2 outline-none focus:border-neutral-600 dark:focus:border-neutral-600 text-cg-text transition-colors duration-200;
   }
 
   .cg-chip {
-    @apply px-2 py-1 rounded-full bg-[rgb(var(--cg-card))]/90 border border-neutral-300 dark:border-neutral-800 text-xs;
+    @apply px-2 py-1 rounded-full bg-cg-card/90 border border-neutral-300 dark:border-neutral-800 text-xs text-cg-text transition-colors duration-200;
   }
 
   /* Hide scrollbars for all browsers */

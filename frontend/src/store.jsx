@@ -1,8 +1,29 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useMemo, useState, useEffect } from 'react'
 
 const StoreContext = createContext(null)
 
 export function StoreProvider({ children }) {
+  const [theme, setTheme] = useState(() => {
+    // Check localStorage for saved theme, default to 'dark'
+    const savedTheme = localStorage.getItem('theme')
+    return savedTheme || 'dark'
+  })
+
+  // Apply theme to document on mount and when theme changes
+  useEffect(() => {
+    const root = document.documentElement
+    if (theme === 'light') {
+      root.classList.add('theme-light')
+    } else {
+      root.classList.remove('theme-light')
+    }
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+  }
+
   const [users, setUsers] = useState({
     'u1': { id: 'u1', handle: 'canvas_guard', name: 'CanvasGuard', verified: true, avatar: 'https://ui-avatars.com/api/?name=C+G&background=111827&color=fff' },
     'u2': { id: 'u2', handle: 'inkfox', name: 'Ink Fox', verified: true, avatar: 'https://ui-avatars.com/api/?name=Ink+Fox&background=111827&color=fff' },
@@ -96,7 +117,10 @@ export function StoreProvider({ children }) {
     }))
   }
 
-  const value = useMemo(() => ({ users, posts, communities, createPost, toggleLike, toggleRepost, addComment, createCommunityPost }), [users, posts, communities])
+  const value = useMemo(() => ({ 
+    users, posts, communities, createPost, toggleLike, toggleRepost, addComment, createCommunityPost,
+    theme, toggleTheme 
+  }), [users, posts, communities, theme])
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
 }
 

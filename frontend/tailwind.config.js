@@ -4,8 +4,18 @@ export default {
     './index.html',
     './src/**/*.{js,jsx,ts,tsx}',
   ],
+  darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'cg-bg': 'rgb(var(--cg-bg))',
+        'cg-card': 'rgb(var(--cg-card))',
+        'cg-muted': 'rgb(var(--cg-muted))',
+        'cg-primary': 'rgb(var(--cg-primary))',
+        'cg-accent': 'rgb(var(--cg-accent))',
+        'cg-text': 'rgb(var(--cg-text))',
+      }
+    },
   },
   plugins: [],
 }
