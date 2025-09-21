@@ -15,7 +15,7 @@ export default function Tweet({ post }) {
   const isReposted = post.reposts.has('me')
 
   return (
-    <div className="flex gap-3 p-4 border-b border-neutral-300 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-black/5 transition-colors duration-200">
+    <div className="flex gap-3 p-4 border-b border-neutral-300 dark:border-neutral-800 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/30 transition-colors duration-200">
       <img alt="avatar" src={author?.avatar} className="h-10 w-10 rounded-full ring-1 ring-neutral-300 dark:ring-neutral-800" />
       <div className="flex-1">
         <div className="flex gap-2 items-center text-sm">

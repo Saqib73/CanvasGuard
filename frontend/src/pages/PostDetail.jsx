@@ -22,7 +22,7 @@ export default function PostDetail() {
   if (!post) return <div className="p-6">Post not found.</div>
 
   return (
-    <div>
+    <div className="h-full overflow-y-auto">
       <div className="sticky top-0 backdrop-blur bg-black/60 border-b border-neutral-800 p-3 font-semibold">Post</div>
       <Tweet post={post} />
       <div className="p-4 min-h-[50vh]">
