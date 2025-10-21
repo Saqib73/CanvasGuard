@@ -21,23 +21,23 @@ function Layout({ children }) {
             <span className="bg-gradient-to-r from-sky-400 to-yellow-400 bg-clip-text text-transparent">CanvasGuard</span>
           </div>
           <nav className="flex flex-col gap-3">
-            <NavLink to="/" className={({ isActive }) => `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 flex items-center gap-3 text-base transition-colors duration-200 ${isActive ? 'font-semibold' : ''}`}>
+            <NavLink to="/" className={({ isActive }) => `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-3 text-base transition-colors duration-200 ${isActive ? 'font-semibold' : ''}`}>
               <span>🏠</span>
               <span>Home</span>
             </NavLink>
-            <NavLink to="/explore" className={({ isActive }) => `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 flex items-center gap-3 text-base transition-colors duration-200 ${isActive ? 'font-semibold' : ''}`}>
+            <NavLink to="/explore" className={({ isActive }) => `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-3 text-base transition-colors duration-200 ${isActive ? 'font-semibold' : ''}`}>
               <span>🧭</span>
               <span>Explore</span>
             </NavLink>
-            <NavLink to="/communities" className={({ isActive }) => `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 flex items-center gap-3 text-base transition-colors duration-200 ${isActive ? 'font-semibold' : ''}`}>
+            <NavLink to="/communities" className={({ isActive }) => `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-3 text-base transition-colors duration-200 ${isActive ? 'font-semibold' : ''}`}>
               <span>👥</span>
               <span>Communities</span>
             </NavLink>
-            <NavLink to="/commissions" className={({ isActive }) => `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 flex items-center gap-3 text-base transition-colors duration-200 ${isActive ? 'font-semibold' : ''}`}>
+            <NavLink to="/commissions" className={({ isActive }) => `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-3 text-base transition-colors duration-200 ${isActive ? 'font-semibold' : ''}`}>
               <span>👥</span>
               <span>Commissions</span>
             </NavLink>
-            <NavLink to="/settings" className={({ isActive }) => `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 flex items-center gap-3 text-base transition-colors duration-200 ${isActive ? 'font-semibold' : ''}`}>
+            <NavLink to="/settings" className={({ isActive }) => `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-3 text-base transition-colors duration-200 ${isActive ? 'font-semibold' : ''}`}>
               <span>⚙️</span>
               <span>Settings</span>
             </NavLink>
