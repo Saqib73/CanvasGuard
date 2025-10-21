@@ -1,0 +1,51 @@
+user {
+    username
+    name
+    bio
+    password
+    posts {
+        ref
+    }
+    comments
+    liked posts
+    artist ? true : false
+    profilePic
+    communities ? optional
+    followers
+    following
+    tags
+}
+
+post {
+    description
+    image ? optional
+    video ? optional
+    comments
+    likes
+    reposts
+    isWatermarked
+}
+
+communities {
+    name
+    cover
+    members
+    created by
+    posts
+    rules
+}
+
+
+comment {
+    postId
+    author
+    text
+    post
+    like
+    reply {
+        comment
+    }
+}
+
+DoSD6AFmEbKV280Q
+mongodb+srv://raainawhalla_db_user:DoSD6AFmEbKV280Q@cluster0.1izotwi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
