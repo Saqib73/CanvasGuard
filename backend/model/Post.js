@@ -13,22 +13,8 @@ const postSchema = new Schema(
       default: null,
     },
     media: {
-      isWaterMarked: {
-        type: Boolean,
-      },
-      public_id: {
-        type: String,
-        required: true,
-      },
-      url: {
-        type: String,
-        required: true,
-      },
-      type: {
-        type: String,
-        enum: ["image", "video"],
-        required: true,
-      },
+      type: Schema.Types.ObjectId,
+      ref: "Media",
     },
     comments: [
       {

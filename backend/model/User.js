@@ -36,16 +36,16 @@ const userSchema = new Schema(
       type: Boolean,
       required: true,
     },
-    profilePic: {
-      public_id: {
-        type: String,
-        required: true,
-      },
-      url: {
-        type: String,
-        required: true,
-      },
-    },
+    // profilePic: {
+    //   public_id: {
+    //     type: String,
+    //     required: true,
+    //   },
+    //   url: {
+    //     type: String,
+    //     required: true,
+    //   },
+    // },
     communities: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Community",
