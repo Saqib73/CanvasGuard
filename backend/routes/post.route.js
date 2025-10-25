@@ -7,14 +7,19 @@ import {
   deletePost,
   likePost,
   unlikePost,
+  upload,
 } from "../controllers/post.controller.js";
+import { attachMentUpload } from "../middleware/multer.middleware.js";
+import { applyWatermark } from "../controllers/watermark.controller.js";
 
 const router = express.Router();
 
 // Post Routes
 router.use(authMiddleware);
-router.post("/", createPost); // Create Post
+router.post("/createPost", createPost); // Create Post
 router.get("/", getAllPosts); // Get All Posts
+router.post("/upload", attachMentUpload, upload);
+router.post("/watermark", applyWatermark);
 router.get("/:id", getPost); // Get Post by ID
 router.delete("/:id", deletePost); // Delete Post
 router.post("/:id/like", likePost); // Like Post

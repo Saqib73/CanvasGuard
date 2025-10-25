@@ -20,17 +20,18 @@ export const signup = async (req, res, next) => {
       bio = "New User";
     }
 
-    const file = req.file;
+    // const file = req.file;
 
-    if (!file) return new Error("please upload profile");
-    const result = await uploadFilesToCloudinary([file]);
+    // if (!file) return new Error("please upload profile");
+    // const result = await uploadFilesToCloudinary([file]);
 
-    const profile_pic = {
-      public_id: result[0].public_id,
-      url: result[0].url,
-    };
+    // const profile_pic = {
+    //   public_id: result[0].public_id,
+    //   url: result[0].url,
+    // };
 
-    const existing = await User.find({ userName });
+    const existing = await User.findOne({ userName });
+    console.log(existing);
     if (existing) return next(new ErrorHandler("Username already exists", 400));
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -41,7 +42,7 @@ export const signup = async (req, res, next) => {
       password: hashedPassword,
       email,
       bio,
-      profile_pic,
+      // profile_pic,
       isArtist,
     });
 
@@ -63,7 +64,7 @@ export const login = async (req, res, next) => {
     if (!user || !match)
       return next(new ErrorHandler("Invalid Credentials", 400));
 
-    generateTokenAndCookie(user, res, `Welcome back ${user.name}`);
+    generateTokenAndCookie(user._id, res, `Welcome back ${user.name}`);
   } catch (err) {
     next(err);
   }

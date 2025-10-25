@@ -1,12 +1,42 @@
+import { uploadFilesToCloudinary } from "../features/uploadFilesToCoudinary.js";
 import { Post } from "../model/Post.js";
 import { User } from "../model/User.js";
+import { Media } from "../model/Media.js";
 import { ErrorHandler } from "../utils/ErrorHandler.js";
+
+export const upload = async (req, res, next) => {
+  try {
+    console.log(req.files);
+    const file = req.files || [];
+    if (file.length < 1)
+      return next(new ErrorHandler("Please upload a file", 401));
+    console.log("file", file);
+
+    const result = await uploadFilesToCloudinary(file);
+
+    return res.status(200).json({
+      success: true,
+      public_id: result[0].public_id,
+      url: result[0].url,
+    });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+};
 
 // Create Post
 export const createPost = async (req, res, next) => {
   try {
-    const { description, type, url, public_id, isArt, isWatermarked } =
-      req.body;
+    const {
+      description,
+      type,
+      url,
+      public_id,
+      isArt,
+      isWatermarked,
+      signature,
+    } = req.body;
     const userId = req.userId;
 
     // Ensure at least one of description or media is present
@@ -20,13 +50,20 @@ export const createPost = async (req, res, next) => {
     }
 
     const media = url
-      ? { isWatermarked, public_id, url, type, isArt }
+      ? { isWatermarked, public_id, url, type, isArt, signature }
       : undefined;
+
+    let newMediaId = undefined;
+    if (media !== undefined) {
+      const newMedia = new Media(media);
+      await newMedia.save();
+      newMediaId = newMedia._id;
+    }
 
     const post = new Post({
       author: userId,
       description: description || "",
-      ...(media && { media }),
+      media: newMediaId,
     });
 
     await post.save();
