@@ -1,114 +1,3 @@
-// import { v2 as cloudinary } from "cloudinary";
-// import axios from "axios";
-// import sharp from "sharp";
-// import crypto from "crypto";
-// import fs from "fs/promises";
-// import path from "path";
-// import { exec } from "child_process";
-// import { v4 as uuidv4 } from "uuid";
-
-// // ES module __dirname workaround
-// import { fileURLToPath } from "url";
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-
-// // Temp folder from .env or fallback to default
-// const TEMP_DIR = path.join(__dirname, "../temp");
-
-// // OpenStego jar path from .env or hardcoded
-// const OPENSTEGO_JAR =
-//   process.env.OPENSTEGO_JAR ||
-//   path.join(__dirname, "../openstego-0.8.6/openstego-0.8.6/lib/openstego.jar");
-
-// export const applyWatermark = async (req, res, next) => {
-//   try {
-//     const { url, public_id } = req.body;
-//     const userId = req.user._id.toString();
-
-//     if (!url || !public_id) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Missing url or public_id" });
-//     }
-
-//     const uid = uuidv4();
-//     const watermarkPath = path.join(TEMP_DIR, `${uid}_watermark.txt`);
-//     const originalPath = path.join(TEMP_DIR, `${uid}_orig.png`);
-//     const stegoPath = path.join(TEMP_DIR, `${uid}_stego.png`);
-
-//     // 1. Download original image
-//     const response = await axios.get(url, { responseType: "arraybuffer" });
-//     const originalBuffer = Buffer.from(response.data, "binary");
-
-//     // 2. Generate invisible signature
-//     const signature = crypto
-//       .createHash("sha256")
-//       .update(`${userId}-${public_id}-${Date.now()}`)
-//       .digest("hex");
-
-//     // 3. Write watermark text file
-//     await fs.writeFile(
-//       watermarkPath,
-//       `UserId: ${userId}\nSignature: ${signature}`
-//     );
-
-//     // 4. Convert original image to PNG
-//     await sharp(originalBuffer).png().toFile(originalPath);
-
-//     // 5. Embed watermark using OpenStego
-//     const cmd = `java -jar "${OPENSTEGO_JAR}" embed -mf "${watermarkPath}" -cf "${originalPath}" -sf "${stegoPath}"`;
-
-//     await new Promise((resolve, reject) => {
-//       exec(cmd, (err, stdout, stderr) => {
-//         if (err) {
-//           console.error("OpenStego error:", stderr || err);
-//           return reject(err);
-//         }
-//         console.log("OpenStego output:", stdout);
-//         resolve();
-//       });
-//     });
-
-//     // 6. Upload stego image to Cloudinary
-//     const stegoBuffer = await fs.readFile(stegoPath);
-
-//     const uploaded = await new Promise((resolve, reject) => {
-//       const stream = cloudinary.uploader.upload_stream(
-//         {
-//           folder: "watermarked",
-//           public_id: `${public_id.split("/").pop()}_wm`,
-//           overwrite: true,
-//         },
-//         (error, result) => {
-//           if (error) reject(error);
-//           else resolve(result);
-//         }
-//       );
-//       stream.end(stegoBuffer);
-//     });
-
-//     // 7. OPTIONAL: cleanup temp files after upload
-//     // await fs.unlink(watermarkPath);
-//     // await fs.unlink(originalPath);
-//     // await fs.unlink(stegoPath);
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Watermark applied successfully (visible + invisible)",
-//       url: uploaded.secure_url,
-//       public_id: uploaded.public_id,
-//       signature,
-//     });
-//   } catch (error) {
-//     console.error("Watermarking failed:", error);
-//     return res.status(500).json({
-//       success: false,
-//       message: "Watermarking failed",
-//       error: error.message,
-//     });
-//   }
-// };
-
 import { v2 as cloudinary } from "cloudinary";
 import axios from "axios";
 import sharp from "sharp";
@@ -117,32 +6,68 @@ import fs from "fs/promises";
 import path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
+import { Media } from "../model/Media.js";
+import { generateImageHashes } from "../utils/hashUtils.js";
+import { Post } from "../model/Post.js";
 
 const execAsync = promisify(exec);
 
 export const applyWatermark = async (req, res, next) => {
   const tempDir = path.join(process.cwd(), "temp");
   try {
-    const { url, public_id } = req.body;
+    const { url, public_id, type } = req.body;
     const userId = req.user._id.toString();
 
-    if (!url || !public_id) {
+    if (!url || !public_id)
       return res
         .status(400)
         .json({ success: false, message: "Missing url or public_id" });
-    }
 
-    // 1. Download original image
+    // 1️⃣ Download image
     const response = await axios.get(url, { responseType: "arraybuffer" });
     const originalBuffer = Buffer.from(response.data, "binary");
 
-    // 2. Generate unique invisible signature
+    // 2️⃣ Check if Cloudinary image already has watermark metadata
+    const existing = await cloudinary.api
+      .resource(public_id, { context: true })
+      .catch(() => null);
+    if (existing?.context?.custom?.signature) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This image already contains a watermark and cannot be watermarked again.",
+      });
+    }
+
+    // 3️⃣ Compute perceptual hash & check for duplicates
+    // const newHash = await computeImageHash(originalBuffer);
+    // const hashPrefix = newHash.substring(0, 6);
+
+    // const possibleDuplicates = await Media.find({ hashPrefix });
+    // const isDuplicate = possibleDuplicates.some((doc) => {
+    //   const dist = [...doc.hash].reduce(
+    //     (acc, bit, i) => acc + (bit !== newHash[i] ? 1 : 0),
+    //     0
+    //   );
+    //   return dist < 10; // threshold
+    // });
+
+    // if (isDuplicate) {
+    //   return res.status(409).json({
+    //     success: false,
+    //     message:
+    //       "A visually similar image already exists — likely already watermarked.",
+    //   });
+    // }
+
+    // 4️⃣ Generate invisible signature
+
     const signature = crypto
       .createHash("sha256")
       .update(`${userId}-${public_id}-${Date.now()}`)
       .digest("hex");
 
-    // 3. Apply visible watermark with Sharp
+    // 5️⃣ Apply visible watermark
     const visibleSVG = `
       <svg width="400" height="100">
         <style>
@@ -157,10 +82,10 @@ export const applyWatermark = async (req, res, next) => {
       .composite([
         { input: visibleBuffer, gravity: "southeast", blend: "overlay" },
       ])
-      .png() // convert to PNG for OpenStego
+      .png()
       .toBuffer();
 
-    // 4. Save temp files for OpenStego
+    // 6️⃣ Temp files for OpenStego
     const uuid = crypto.randomUUID();
     const origPath = path.join(tempDir, `${uuid}_orig.png`);
     const watermarkPath = path.join(tempDir, `${uuid}_watermark.txt`);
@@ -172,7 +97,6 @@ export const applyWatermark = async (req, res, next) => {
       `userId:${userId}\nsignature:${signature}`
     );
 
-    // 5. Run OpenStego to embed invisible watermark
     const openstegoJar = path.join(
       process.cwd(),
       "openstego-0.8.6",
@@ -183,22 +107,53 @@ export const applyWatermark = async (req, res, next) => {
     const cmd = `java -jar "${openstegoJar}" embed -mf "${watermarkPath}" -cf "${origPath}" -sf "${stegoPath}" -p ""`;
     await execAsync(cmd);
 
-    const stegoBuffer = await fs.readFile(stegoPath); // wait for the file to be read
+    const stegoBuffer = await fs.readFile(stegoPath);
+    const { sha256, phash } = await generateImageHashes(stegoBuffer);
+    if (!sha256 || !phash) {
+      return res.status(500).json({
+        success: failed,
+        message: "hash generation failed",
+      });
+    }
 
-    // 6. Upload final image to Cloudinary
+    // 7️⃣ Upload watermarked image to Cloudinary
     const uploaded = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
           folder: "watermarked",
           public_id: `${public_id.split("/").pop()}_wm`,
           overwrite: true,
+          context: { userId, signature, created_at: new Date().toISOString() },
         },
         (err, result) => (err ? reject(err) : resolve(result))
       );
       stream.end(stegoBuffer);
     });
 
-    // 7. Cleanup temp files
+    // const buffer = await fs.readFile(tempPath);
+
+    await Media.deleteOne({ public_id });
+
+    try {
+      await cloudinary.uploader
+        .destroy(public_id)
+        .then((res) => console.log(res));
+    } catch (err) {
+      console.warn("Failed to delete original image:", err.message);
+    }
+
+    // 8️⃣ Store hash
+    await Media.create({
+      public_id: uploaded.public_id,
+      url: uploaded.url,
+      userId,
+      sha256,
+      phash,
+      type,
+      isWaterMarked: true,
+    });
+
+    // 9️⃣ Cleanup
     await fs.rm(origPath, { force: true });
     await fs.rm(watermarkPath, { force: true });
     await fs.rm(stegoPath, { force: true });
@@ -215,6 +170,119 @@ export const applyWatermark = async (req, res, next) => {
     return res.status(500).json({
       success: false,
       message: "Watermarking failed",
+      error: err.message,
+    });
+  }
+};
+
+const extractWatermarkData = async (imageBuffer) => {
+  const tempDir = path.join(process.cwd(), "temp");
+  const uuid = crypto.randomUUID();
+  const stegoPath = path.join(tempDir, `${uuid}_stego.png`);
+  const extractPath = path.join(tempDir, `${uuid}_extracted.txt`);
+
+  await fs.writeFile(stegoPath, imageBuffer);
+
+  const openstegoJar = path.join(
+    process.cwd(),
+    "openstego-0.8.6",
+    "openstego-0.8.6",
+    "lib",
+    "openstego.jar"
+  );
+
+  const cmd = `java -jar "${openstegoJar}" extract -sf "${stegoPath}" -xf "${extractPath}" -p ""`;
+  try {
+    await execAsync(cmd);
+    const extractedData = await fs.readFile(extractPath, "utf-8");
+    await fs.rm(stegoPath, { force: true });
+    await fs.rm(extractPath, { force: true });
+    return extractedData;
+  } catch (err) {
+    console.warn("Watermark extraction failed or no watermark found.");
+    return null;
+  }
+};
+
+export const verifyOwnership = async (req, res) => {
+  try {
+    const { postId } = req.body;
+    const userId = req.user._id.toString();
+
+    // 1️⃣ Get the target post + its media
+    const post = await Post.findById(postId).populate("media");
+    if (!post || !post.media)
+      return res.status(404).json({
+        success: false,
+        message: "Post or media not found.",
+      });
+
+    const media = post.media;
+    const response = await axios.get(media.url, {
+      responseType: "arraybuffer",
+    });
+    const imageBuffer = Buffer.from(response.data, "binary");
+
+    // 2️⃣ Try to extract invisible watermark
+    const extractedData = await extractWatermarkData(imageBuffer);
+
+    if (extractedData) {
+      // Look for userId in extracted watermark
+      const match = extractedData.match(/userId:(.+)/);
+      if (match && match[1].trim() === userId) {
+        return res.status(200).json({
+          success: true,
+          verifiedBy: "watermark",
+          message: "Ownership verified via invisible watermark.",
+          matchFound: true,
+          stolenPost: post,
+        });
+      } else if (match) {
+        // Watermark belongs to someone else
+        return res.status(403).json({
+          success: false,
+          verifiedBy: "watermark",
+          message: "Image watermark indicates another owner.",
+          matchFound: true,
+          actualOwner: match[1].trim(),
+          stolenPost: post,
+        });
+      }
+    }
+
+    // 3️⃣ No watermark found — fallback to hash comparison
+    const { sha256, phash } = await generateImageHashes(imageBuffer);
+
+    const similarMedia = await Media.find();
+    for (const m of similarMedia) {
+      const dist = [...phash].reduce(
+        (acc, bit, i) => acc + (bit !== m.phash[i] ? 1 : 0),
+        0
+      );
+      if (dist < 10 && m.userId.toString() === userId) {
+        return res.status(200).json({
+          success: true,
+          verifiedBy: "hash",
+          message: "Ownership verified via perceptual hash similarity.",
+          matchFound: true,
+          stolenPost: post,
+          originalMedia: m,
+        });
+      }
+    }
+
+    // 4️⃣ If we reach here, no match found
+    return res.status(200).json({
+      success: false,
+      message:
+        "No watermark or hash match found. Image may not belong to the reporter.",
+      matchFound: false,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify ownership",
       error: err.message,
     });
   }
