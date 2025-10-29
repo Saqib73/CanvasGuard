@@ -5,6 +5,7 @@ const mediaSchema = new Schema(
   {
     isWaterMarked: {
       type: Boolean,
+      required: true,
     },
     public_id: {
       type: String,
@@ -20,6 +21,12 @@ const mediaSchema = new Schema(
       required: true,
     },
     signature: {
+      type: String,
+    },
+    sha256: {
+      type: String,
+    },
+    phash: {
       type: String,
     },
   },

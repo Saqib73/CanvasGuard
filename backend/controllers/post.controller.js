@@ -3,21 +3,98 @@ import { Post } from "../model/Post.js";
 import { User } from "../model/User.js";
 import { Media } from "../model/Media.js";
 import { ErrorHandler } from "../utils/ErrorHandler.js";
+import { generateImageHashes } from "../utils/hashUtils.js";
+import * as fs from "fs/promises";
+// import { fsync } from "fs";
+import path from "path";
+
+// export const upload = async (req, res, next) => {
+//   try {
+//     console.log(req.files);
+//     const file = req.files || [];
+//     if (file.length < 1)
+//       return next(new ErrorHandler("Please upload a file", 401));
+//     console.log("file", file);
+
+//     const result = await uploadFilesToCloudinary(file);
+
+//     return res.status(200).json({
+//       success: true,
+//       public_id: result[0].public_id,
+//       url: result[0].url,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     next(error);
+//   }
+// };
+
+// Create Post
 
 export const upload = async (req, res, next) => {
   try {
-    console.log(req.files);
-    const file = req.files || [];
-    if (file.length < 1)
+    const files = req.files || [];
+    if (files.length < 1)
       return next(new ErrorHandler("Please upload a file", 401));
-    console.log("file", file);
 
-    const result = await uploadFilesToCloudinary(file);
+    const userId = req.userId;
+    const file = files[0];
+    const tempDir = path.join(process.cwd(), "temp");
+    await fs.mkdir(tempDir, { recursive: true });
+
+    // Save uploaded buffer to temp file
+    const tempPath = path.join(tempDir, `${Date.now()}_${file.originalname}`);
+    await fs.writeFile(tempPath, file.buffer);
+
+    // Generate hash from the temp file
+    // const newHash = await generateImageHash(tempPath);
+    const buffer = await fs.readFile(tempPath);
+    const { sha256, phash } = await generateImageHashes(buffer);
+
+    if (!sha256 || !phash) {
+      return res.status(500).json({
+        success: failed,
+        message: "hash generation failed",
+      });
+    }
+
+    //  Check against existing hashes in DB
+    // const existingHashes = await Media.find();
+    // for (const existing of existingHashes) {
+    //   if (areImagesSimilar(newHash, existing.hash)) {
+    //     fs.unlink(tempPath);
+    //     return res.status(409).json({
+    //       success: false,
+    //       message:
+    //         "This image already exists or is very similar to another upload.",
+    //     });
+    //   }
+    // }
+
+    // 3️⃣ If unique, upload to Cloudinary
+    const result = await uploadFilesToCloudinary(files);
+
+    // Store hash with Cloudinary public_id for quick lookup
+    await Media.create({
+      public_id: result[0].public_id,
+      url: result[0].url,
+      type: "image",
+      userId,
+      sha256,
+      phash,
+      isWaterMarked: false,
+    });
+
+    // Cleanup local file
+    await fs.unlink(tempPath);
 
     return res.status(200).json({
       success: true,
       public_id: result[0].public_id,
       url: result[0].url,
+      sha256,
+      phash,
+      message: "File uploaded successfully.",
     });
   } catch (error) {
     console.error(error);
@@ -25,19 +102,10 @@ export const upload = async (req, res, next) => {
   }
 };
 
-// Create Post
 export const createPost = async (req, res, next) => {
   try {
-    const {
-      description,
-      type,
-      url,
-      public_id,
-      isArt,
-      isWatermarked,
-      signature,
-    } = req.body;
-    const userId = req.userId;
+    const { description, public_id } = req.body;
+    const userId = req.user._id;
 
     // Ensure at least one of description or media is present
     if (!description && !url) {
@@ -49,21 +117,19 @@ export const createPost = async (req, res, next) => {
       );
     }
 
-    const media = url
-      ? { isWatermarked, public_id, url, type, isArt, signature }
-      : undefined;
+    const media = await Media.findOne({ public_id });
 
-    let newMediaId = undefined;
-    if (media !== undefined) {
-      const newMedia = new Media(media);
-      await newMedia.save();
-      newMediaId = newMedia._id;
-    }
+    // let newMediaId = undefined;
+    // if (media !== undefined) {
+    //   const newMedia = new Media(media);
+    //   await newMedia.save();
+    //   newMediaId = newMedia._id;
+    // }
 
     const post = new Post({
       author: userId,
       description: description || "",
-      media: newMediaId,
+      media: media._id,
     });
 
     await post.save();

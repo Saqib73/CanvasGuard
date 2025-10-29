@@ -10,7 +10,10 @@ import {
   upload,
 } from "../controllers/post.controller.js";
 import { attachMentUpload } from "../middleware/multer.middleware.js";
-import { applyWatermark } from "../controllers/watermark.controller.js";
+import {
+  applyWatermark,
+  verifyOwnership,
+} from "../controllers/watermark.controller.js";
 
 const router = express.Router();
 
@@ -20,6 +23,7 @@ router.post("/createPost", createPost); // Create Post
 router.get("/", getAllPosts); // Get All Posts
 router.post("/upload", attachMentUpload, upload);
 router.post("/watermark", applyWatermark);
+router.post("/verify", verifyOwnership);
 router.get("/:id", getPost); // Get Post by ID
 router.delete("/:id", deletePost); // Delete Post
 router.post("/:id/like", likePost); // Like Post
