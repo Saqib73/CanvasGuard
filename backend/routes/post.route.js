@@ -8,6 +8,7 @@ import {
   likePost,
   unlikePost,
   upload,
+  protect,
 } from "../controllers/post.controller.js";
 import { attachMentUpload } from "../middleware/multer.middleware.js";
 import {
@@ -22,6 +23,7 @@ router.use(authMiddleware);
 router.post("/createPost", createPost); // Create Post
 router.get("/", getAllPosts); // Get All Posts
 router.post("/upload", attachMentUpload, upload);
+router.post("/protect", protect);
 router.post("/watermark", applyWatermark);
 router.post("/verify", verifyOwnership);
 router.get("/:id", getPost); // Get Post by ID

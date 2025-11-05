@@ -17,3 +17,8 @@ If someone reports or re-uploads →
 Compute hash again.
 
 If matches → flag as duplicate, verify via invisible/visible watermark.
+
+“We integrate a Glaze-inspired adversarial protection service using CLIP embeddings as a separate Python microservice.
+When an artist uploads artwork, our system optionally applies imperceptible perturbations that alter the way AI models perceive the style, reducing model similarity while keeping human perception unchanged.”
+
+/upload → python-protect → visible watermark (optional) → invisible watermark (final) → store final protected image public_url in DB

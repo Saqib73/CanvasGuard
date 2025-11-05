@@ -7,6 +7,9 @@ import { generateImageHashes } from "../utils/hashUtils.js";
 import * as fs from "fs/promises";
 // import { fsync } from "fs";
 import path from "path";
+import axios from "axios";
+import { v2 as cloudinary } from "cloudinary";
+import { applyWatermark } from "./watermark.controller.js";
 
 // export const upload = async (req, res, next) => {
 //   try {
@@ -102,6 +105,42 @@ export const upload = async (req, res, next) => {
   }
 };
 
+export const protect = async (req, res) => {
+  const { cloudinaryUrl, public_id } = req.body;
+  const token = req.cookies.jwt;
+  const userId = req.user._id;
+  console.log("userId in protect", userId);
+  const protectResponse = await axios.post(
+    "http://localhost:5001/protect",
+    { url: cloudinaryUrl },
+    { responseType: "arraybuffer" }
+  );
+
+  const protectedBuffer = Buffer.from(protectResponse.data);
+  // temp upload this to cloudinary
+  const tempProtectedUpload = await new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "temp_protected" },
+      (err, result) => (err ? reject(err) : resolve(result))
+    );
+    stream.end(protectedBuffer);
+  });
+
+  // now call your /watermark endpoint normally
+  const result = await applyWatermark({
+    url: tempProtectedUpload.secure_url,
+    public_id: tempProtectedUpload.public_id,
+    type: "image",
+    userId,
+  });
+
+  console.log("res-->", result);
+
+  // AFTER watermark success → cleanup
+  // await cloudinary.uploader.destroy(public_id);
+  return res.status(200).json(result);
+};
+
 export const createPost = async (req, res, next) => {
   try {
     const { description, public_id } = req.body;
@@ -169,9 +208,10 @@ export const getAllPosts = async (req, res, next) => {
 };
 
 // Get Post by ID
-export const getPost = async (req, res) => {
+export const getPost = async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.id)
+    const postId = req.body;
+    const post = await Post.findById(postId)
       .populate("author", "userName profilePic")
       .populate({
         path: "comments",
@@ -185,26 +225,26 @@ export const getPost = async (req, res) => {
       post,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
 // Delete Post
-export const deletePost = async (req, res) => {
+export const deletePost = async (req, res, next) => {
   try {
     const { postId } = req.body;
     const post = await Post.findById(postId);
 
-    if (!post) return res.status(404).json({ msg: "Post not found" });
+    if (!post) return next(new ErrorHandler("Post not Found", 404));
 
     if (post.author.toString() !== req.userId) {
-      return res.status(403).json({ msg: "Not authorized" });
+      return next(new ErrorHandler("Not authorized", 403));
     }
 
     await Post.findByIdAndDelete(postId);
     return res.json({ msg: "Post deleted" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 

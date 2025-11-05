@@ -12,16 +12,12 @@ import { Post } from "../model/Post.js";
 
 const execAsync = promisify(exec);
 
-export const applyWatermark = async (req, res, next) => {
+export const applyWatermark = async ({ url, public_id, type, userId }) => {
+  console.log("user4Id inside watermark", userId);
   const tempDir = path.join(process.cwd(), "temp");
   try {
-    const { url, public_id, type } = req.body;
-    const userId = req.user._id.toString();
-
     if (!url || !public_id)
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing url or public_id" });
+      return { success: false, message: "Missing url or public_id" };
 
     // 1️⃣ Download image
     const response = await axios.get(url, { responseType: "arraybuffer" });
@@ -32,11 +28,11 @@ export const applyWatermark = async (req, res, next) => {
       .resource(public_id, { context: true })
       .catch(() => null);
     if (existing?.context?.custom?.signature) {
-      return res.status(400).json({
+      return {
         success: false,
         message:
           "This image already contains a watermark and cannot be watermarked again.",
-      });
+      };
     }
 
     // 3️⃣ Compute perceptual hash & check for duplicates
@@ -73,7 +69,9 @@ export const applyWatermark = async (req, res, next) => {
         <style>
           .title { fill: white; font-size: 28px; font-weight: bold; opacity: 0.8;}
         </style>
-        <text x="10" y="50" class="title">© ${userId.slice(0, 6)}</text>
+        <text x="10" y="50" class="title">© ${userId
+          .toString()
+          .slice(0, 6)}</text>
       </svg>
     `;
     const visibleBuffer = Buffer.from(visibleSVG);
@@ -110,10 +108,10 @@ export const applyWatermark = async (req, res, next) => {
     const stegoBuffer = await fs.readFile(stegoPath);
     const { sha256, phash } = await generateImageHashes(stegoBuffer);
     if (!sha256 || !phash) {
-      return res.status(500).json({
+      return {
         success: failed,
         message: "hash generation failed",
-      });
+      };
     }
 
     // 7️⃣ Upload watermarked image to Cloudinary
@@ -158,20 +156,20 @@ export const applyWatermark = async (req, res, next) => {
     await fs.rm(watermarkPath, { force: true });
     await fs.rm(stegoPath, { force: true });
 
-    return res.status(200).json({
+    return {
       success: true,
       message: "Visible + Invisible watermark applied successfully",
       url: uploaded.secure_url,
       public_id: uploaded.public_id,
       signature,
-    });
+    };
   } catch (err) {
     console.error("Watermarking failed:", err);
-    return res.status(500).json({
+    return {
       success: false,
       message: "Watermarking failed",
       error: err.message,
-    });
+    };
   }
 };
 
