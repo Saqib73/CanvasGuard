@@ -64,7 +64,7 @@ export const login = async (req, res, next) => {
     if (!user || !match)
       return next(new ErrorHandler("Invalid Credentials", 400));
 
-    generateTokenAndCookie(user._id, res, `Welcome back ${user.name}`);
+    generateTokenAndCookie(user, res, `Welcome back ${user.name}`);
   } catch (err) {
     next(err);
   }

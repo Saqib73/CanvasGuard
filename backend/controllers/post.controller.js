@@ -53,7 +53,7 @@ export const upload = async (req, res, next) => {
 
     if (!sha256 || !phash) {
       return res.status(500).json({
-        success: failed,
+        success: "failed",
         message: "hash generation failed",
       });
     }
@@ -108,7 +108,7 @@ export const createPost = async (req, res, next) => {
     const userId = req.user._id;
 
     // Ensure at least one of description or media is present
-    if (!description && !url) {
+    if (!description && !public_id) {
       return next(
         new ErrorHandler(
           "Post must have either a description or a media file.",
@@ -156,7 +156,8 @@ export const getAllPosts = async (req, res, next) => {
       .populate({
         path: "comments",
         populate: { path: "author", select: "userName profilePic" },
-      });
+      })
+      .populate("media", "url");
 
     return res.status(200).json({
       success: true,
@@ -169,14 +170,15 @@ export const getAllPosts = async (req, res, next) => {
 };
 
 // Get Post by ID
-export const getPost = async (req, res) => {
+export const getPost = async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.id)
+    const post = await Post.findById(req.params.postId)
       .populate("author", "userName profilePic")
       .populate({
         path: "comments",
-        populate: { path: "author", select: "userName profilePic" },
-      });
+        populate: { path: "author", select: "name userName profilePic" },
+      })
+      .populate("media", "url");
 
     if (!post) return next(new ErrorHandler("Post not found", 404));
 
@@ -185,40 +187,40 @@ export const getPost = async (req, res) => {
       post,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err.message);
+    next(err);
   }
 };
 
 // Delete Post
-export const deletePost = async (req, res) => {
+export const deletePost = async (req, res, next) => {
   try {
     const { postId } = req.body;
     const post = await Post.findById(postId);
 
-    if (!post) return res.status(404).json({ msg: "Post not found" });
+    if (!post) return next(new ErrorHandler("Post not found", 404));
 
     if (post.author.toString() !== req.userId) {
-      return res.status(403).json({ msg: "Not authorized" });
+      return next(new ErrorHandler("Not authorized", 403));
     }
 
     await Post.findByIdAndDelete(postId);
     return res.json({ msg: "Post deleted" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
 // Like Post
-export const likePost = async (req, res) => {
+export const likePost = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { postId } = req.body; // postId
 
     const post = await Post.findById(postId);
-    if (!post) return res.status(404).json({ msg: "Post not found" });
-
+    if (!post) return next(new ErrorHandler("Post not Found", 404));
     if (post.likes.includes(userId)) {
-      return res.status(400).json({ msg: "Already liked" });
+      return next(new ErrorHandler("Already Liked", 400));
     }
 
     post.likes.push(userId);
@@ -226,18 +228,18 @@ export const likePost = async (req, res) => {
 
     return res.json({ msg: "Post liked", likes: post.likes.length });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
 // Unlike Post
-export const unlikePost = async (req, res) => {
+export const unlikePost = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { postId } = req.body;
 
     const post = await Post.findById(postId);
-    if (!post) return res.status(404).json({ msg: "Post not found" });
+    if (!post) return next(new ErrorHandler("Post not Found", 404));
 
     if (!post.likes.includes(userId)) {
       return res.status(400).json({ msg: "You haven't liked this post" });
@@ -248,6 +250,6 @@ export const unlikePost = async (req, res) => {
 
     return res.json({ msg: "Post unliked", likes: post.likes.length });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
