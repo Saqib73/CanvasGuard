@@ -8,6 +8,7 @@ import comment from "./routes/comment.route.js";
 import post from "./routes/post.route.js";
 import cookies from "cookie-parser";
 import cloudinary from "cloudinary";
+import cors from "cors";
 
 const PORT = process.env.PORT;
 const app = express();
@@ -20,6 +21,13 @@ cloudinary.config({
 
 app.use(express.json());
 app.use(cookies());
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/user", user);

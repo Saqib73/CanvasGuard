@@ -5,7 +5,7 @@ import { Post } from "../model/Post.js";
 export const addComment = async (req, res) => {
   try {
     const { text, postId } = req.body;
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     const comment = new Comment({
       text,
@@ -16,7 +16,11 @@ export const addComment = async (req, res) => {
     await comment.save();
     await Post.findByIdAndUpdate(postId, { $push: { comments: comment._id } });
 
-    res.status(201).json(comment);
+    res.status(201).json({
+      success: true,
+      message: "Comment Added Successfully",
+      comment,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

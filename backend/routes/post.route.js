@@ -24,7 +24,7 @@ router.get("/", getAllPosts); // Get All Posts
 router.post("/upload", attachMentUpload, upload);
 router.post("/watermark", applyWatermark);
 router.post("/verify", verifyOwnership);
-router.get("/:id", getPost); // Get Post by ID
+router.get("/:postId", getPost); // Get Post by ID
 router.delete("/:id", deletePost); // Delete Post
 router.post("/:id/like", likePost); // Like Post
 router.post("/:id/unlike", unlikePost); // Unlike Post
