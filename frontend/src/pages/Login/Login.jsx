@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { userExists } from "../../redux/reducers/auth";
+import toast from "react-hot-toast";
 
 export default function Login() {
   const [userName, setUserName] = useState("");
@@ -21,6 +22,8 @@ export default function Login() {
       },
     };
 
+    const toastId = toast.loading("Logging in...");
+
     try {
       const { data } = await axios.post(
         `${import.meta.env.VITE_SERVER}/api/v1/auth/login`,
@@ -31,10 +34,16 @@ export default function Login() {
         config
       );
       console.log(data);
+      toast.success("Logged in", {
+        id: toastId,
+      });
 
       dispatch(userExists(data.userId));
     } catch (error) {
       console.error(error);
+      toast.error(error.message, {
+        id: toastId,
+      });
     } finally {
       setIsLoading(false);
     }

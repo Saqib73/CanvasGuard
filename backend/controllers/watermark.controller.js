@@ -376,16 +376,16 @@ export const verifyOwnership = async (req, res) => {
           message: "Ownership verified via invisible watermark.",
           matchFound: true,
           stolenPost: post,
+          isStolen: true,
         });
       } else if (match) {
         // Watermark belongs to someone else
         return res.status(403).json({
-          success: false,
+          success: true,
           verifiedBy: "watermark",
           message: "Image watermark indicates another owner.",
           matchFound: true,
-          actualOwner: match[1].trim(),
-          stolenPost: post,
+          isStolen: false,
         });
       }
     }

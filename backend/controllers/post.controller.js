@@ -4,6 +4,7 @@ import { User } from "../model/User.js";
 import { Media } from "../model/Media.js";
 import { ErrorHandler } from "../utils/ErrorHandler.js";
 import { generateImageHashes } from "../utils/hashUtils.js";
+import { v2 as cloudinary } from "cloudinary";
 import * as fs from "fs/promises";
 // import { fsync } from "fs";
 import path from "path";
@@ -189,18 +190,45 @@ export const getPost = async (req, res, next) => {
 // Delete Post
 export const deletePost = async (req, res, next) => {
   try {
-    const { postId } = req.body;
-    const post = await Post.findById(postId);
+    console.log("inside delete post");
+    const { postId } = req.params;
+    const { isStolen } = req.body;
+    const post = await Post.findById(postId).populate("media", "public_id");
 
     if (!post) return next(new ErrorHandler("Post not found", 404));
 
-    if (post.author.toString() !== req.userId) {
+    if (post.author.toString() !== req.user._Id && !isStolen) {
       return next(new ErrorHandler("Not authorized", 403));
     }
 
-    await Post.findByIdAndDelete(postId);
-    return res.json({ msg: "Post deleted" });
+    const promises = [];
+
+    if (post.media?.public_id) {
+      promises.push(cloudinary.uploader.destroy(post.media.public_id));
+    }
+
+    if (post.media?._id) {
+      promises.push(Media.findByIdAndDelete(post.media._id));
+    }
+
+    promises.push(
+      User.findByIdAndUpdate(post.author, { $pull: { posts: postId } })
+    );
+
+    promises.push(
+      User.updateMany({ likedPosts: postId }, { $pull: { likedPosts: postId } })
+    );
+
+    promises.push(Post.findByIdAndDelete(postId));
+
+    await Promise.all(promises);
+
+    return res.status(200).json({
+      success: true,
+      msg: "Post deleted successfully",
+    });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };

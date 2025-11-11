@@ -66,6 +66,14 @@ const api = createApi({
       }),
       providesTags: ["LikedPosts"],
     }),
+    deletePost: builder.mutation({
+      query: ({ postId }) => ({
+        url: `/posts/${postId}`,
+        credentials: "include",
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Post"],
+    }),
   }),
 });
 
@@ -80,4 +88,5 @@ export const {
   useDisLikeMutation,
   useGetUserProfileQuery,
   useGetAllLikedPostsQuery,
+  useDeletePostMutation,
 } = api;

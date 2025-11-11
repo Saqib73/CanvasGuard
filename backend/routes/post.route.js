@@ -27,7 +27,7 @@ router.post("/upload", attachMentUpload, upload);
 router.post("/watermark", applyWatermark);
 router.post("/verify", verifyOwnership);
 router.get("/:postId", getPost); // Get Post by ID
-router.delete("/:id", deletePost); // Delete Post
+router.delete("/:postId", deletePost); // Delete Post
 router.post("/like", likePost); // Like Post
 router.post("/unlike", unlikePost); // Unlike Post
 
