@@ -1,19 +1,11 @@
 import { useState } from "react";
-// import { useStore } from "../store.jsx";
-import Composer from "../components/Composer";
-import Tweet from "../components/Tweet";
-import { useGetPostsQuery } from "../redux/api/api.js";
-import { useEffect } from "react";
+import Composer from "../../components/Composer.jsx";
+import Tweet from "../../components/Tweet.jsx";
+import { useGetPostsQuery } from "../../redux/api/api.js";
 
 export default function Home() {
-  // const { posts } = useStore();
   const data = useGetPostsQuery();
-  // const posts = data.data.posts;
   const [active, setActive] = useState("For you");
-  console.log(data);
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
 
   return data.isLoading ? (
     <div>loading...</div>
@@ -44,7 +36,7 @@ export default function Home() {
         </div>
         <div>
           {data.data.posts.map((p) => (
-            <Tweet key={p.id} post={p} />
+            <Tweet key={p._id} post={p} />
           ))}
         </div>
       </div>

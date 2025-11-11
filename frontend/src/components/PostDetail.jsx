@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Tweet from "../components/Tweet";
+import Tweet from "./Tweet.jsx";
 import { useGetPostQuery } from "../redux/api/api.js";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -75,7 +75,7 @@ export default function PostDetail() {
         <div className="mt-4">
           {data.post.comments?.map((r) => (
             <div
-              key={r.id}
+              key={r._id}
               className="flex gap-3 p-4 border-b border-neutral-800"
             >
               <img

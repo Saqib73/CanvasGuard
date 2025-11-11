@@ -5,30 +5,215 @@ function formatCount(n) {
 }
 
 import { Link } from "react-router-dom";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import {
+  useDeletePostMutation,
+  useDisLikeMutation,
+  useSendLikeMutation,
+} from "../redux/api/api";
+import { BsThreeDots } from "react-icons/bs";
+import axios from "axios";
+import { useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { useEffect } from "react";
+// import { useStore } from "../store";
 
 export default function Tweet({ post }) {
-  // const { users, toggleLike, toggleRepost } = useStore();
-  // const author = users[post.authorId];
-  // const isLiked = post.likes.has("me");
-  // const isReposted = post.reposts.has("me");
+  const { user } = useSelector((state) => state.auth);
+  // const [isLiked, setIsLiked] = useState(false);
+  const isLiked = post.likes.includes(user._id);
+  const [sendLike, { sendLikeData, sendLikeIsLoading, sendLikeisError }] =
+    useSendLikeMutation();
+  const [disLike] = useDisLikeMutation();
+  const [isStolen, setIsStolen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const isPostAuthor = post.author.userName == user.userName;
+
+  const menuRef = useRef(null);
+
+  const [deletePost] = useDeletePostMutation();
+
   const author = post.author;
-  const isLiked = true;
   const isReposted = false;
 
+  const toggleLike = async () => {
+    if (isLiked == false) {
+      await sendLike({ postId: post._id });
+    } else {
+      await disLike({ postId: post._id });
+    }
+    // setIsLiked((prev) => !prev);
+  };
+
+  const verifyArtTheft = async () => {
+    setOpen((p) => !p);
+    setIsLoading(true);
+    const toastId = toast.loading("Verifying...");
+    try {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_SERVER}/api/v1/posts/verify`,
+        {
+          postId: post._id,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      toast.success(data.message, {
+        id: toastId,
+      });
+      console.log(data);
+      if (data.isStolen) {
+        setIsStolen(true);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response.data?.message, {
+        id: toastId,
+      });
+    } finally {
+      setIsLoading(true);
+    }
+  };
+
+  useEffect(() => {
+    console.log(open);
+  }, [open]);
+
+  const handleRemove = async () => {
+    setRemoving(true);
+    const toastId = toast.loading("Removing Post");
+    try {
+      const { data } = await deletePost({
+        postId: post._id,
+        isStolen,
+      }).unwrap();
+      toast.success(data.message, {
+        id: toastId,
+      });
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response.data?.message || "Something wen wrong", {
+        id: toastId,
+      });
+    } finally {
+      setRemoving(false);
+      setIsStolen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
   return (
-    <div className="flex gap-3 p-4 border-b border-neutral-300 dark:border-neutral-800 hover:bg-neutral-600/50 dark:hover:bg-neutral-800/30 transition-colors duration-200">
-      <img
-        alt="avatar"
-        // src={post}
-        className="h-10 w-10 rounded-full ring-1 ring-neutral-300 dark:ring-neutral-800"
-      />
+    <div className="flex gap-3 p-4 border-b border-neutral-300 dark:border-neutral-800 hover:bg-neutral-800/50 dark:hover:bg-neutral-800/30 transition-colors duration-200">
+      <Link to={`/artist/${author.userName}`}>
+        <img
+          alt="avatar"
+          // src={post}
+          className="h-10 w-10 rounded-full ring-1 ring-neutral-300 dark:ring-neutral-800"
+        />
+      </Link>
       <div className="flex-1">
-        <div className="flex gap-2 items-center text-sm">
-          <span className="font-semibold text-cg-text">{author?.userName}</span>
-          {author?.verified && <span className="text-sky-400">✔</span>}
-          <span className="text-neutral-500 dark:text-neutral-400">
-            @{author?.handle}
-          </span>
+        <div className="flex gap-2 justify-between text-sm">
+          <div className="flex gap-2 items-center text-sm">
+            <Link
+              to={`/artist/${author.userName}`}
+              className=" hover:underline"
+            >
+              <span className="font-semibold text-cg-text">
+                {author?.userName}
+              </span>
+            </Link>
+            {author?.verified && <span className="text-sky-400">✔</span>}
+            <Link to={`/artist/${author.userName}`}>
+              <span className="text-neutral-500 dark:text-neutral-400">
+                @{author?.userName}
+              </span>
+            </Link>
+          </div>
+
+          <div
+            ref={menuRef}
+            className={`mr-2 dropdown dropdown-end ${
+              open ? "dropdown-open" : "dropdown-close"
+            }`}
+          >
+            <button
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen((p) => !p);
+              }}
+              className="btn hover:bg-blue-500/40 hover:shadow-[0_0_0_3px_rgba(29,155,240,0.3)] h-5 w-5 rounded-full flex justify-center items-center"
+            >
+              <BsThreeDots />
+            </button>
+            <ul
+              tabIndex="-1"
+              className={`dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm `}
+            >
+              <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-gray-600 hover:rounded-md hover:cursor-pointer">
+                <button onClick={() => setOpen((p) => !p)}>
+                  Unfollow User
+                </button>
+              </li>
+              {!isPostAuthor && (
+                <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-gray-600 hover:rounded-md hover:cursor-pointer">
+                  <button onClick={verifyArtTheft}>
+                    Verify against Art theft
+                  </button>
+                </li>
+              )}
+              {isPostAuthor && (
+                <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-gray-600 hover:rounded-md hover:cursor-pointer">
+                  <button onClick={handleRemove}>Delete Post</button>
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {isStolen && (
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+              <div className="bg-cg-card border border-neutral-300 dark:border-neutral-700 rounded-xl p-6 shadow-xl w-80">
+                <h3 className="font-semibold text-lg mb-4">
+                  Art theft detected!
+                </h3>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
+                  This post appears to be originally yours. Do you want to
+                  remove it?
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setIsStolen(false)}
+                    disabled={removing}
+                    className="px-4 py-2 rounded-lg bg-neutral-200 dark:bg-neutral-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleRemove}
+                    disabled={removing}
+                    className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+                  >
+                    Yes, remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <Link
           to={`/post/${post._id}`}
@@ -90,13 +275,14 @@ export default function Tweet({ post }) {
           <button
             className={`${
               isLiked ? "text-pink-500" : "hover:text-pink-500"
-            } flex items-center gap-2 transition-colors duration-200`}
-            onClick={() => toggleLike(post.id, "me")}
+            } flex items-center gap-2  duration-200 transition-transform`}
+            onClick={toggleLike}
+            disabled={sendLikeIsLoading}
           >
-            <span>❤</span>
-            <span>
-              Like {post.likes.size ? formatCount(post.likes.size) : ""}
-            </span>
+            {/* <span> */}
+            {isLiked ? <FaHeart /> : <FaRegHeart />}
+            {/* </span> */}
+            <span>{post.likes.size ? formatCount(post.likes.size) : ""}</span>
           </button>
           <button
             className="hover:text-neutral-700 dark:hover:text-neutral-200 flex items-center gap-2 transition-colors duration-200"

@@ -1,7 +1,31 @@
 import { NavLink } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
+import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import { userNotExists } from "../redux/reducers/auth";
+import api from "../redux/api/api";
+import toast from "react-hot-toast";
 
 export const Layout = ({ children }) => {
+  const { user } = useSelector((state) => state.auth);
+  const userName = user.userName;
+  const dispatch = useDispatch();
+  const logoutHandler = async () => {
+    try {
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_SERVER}/api/v1/auth/logout`,
+        {
+          withCredentials: true,
+        }
+      );
+      dispatch(userNotExists());
+      dispatch(api.util.resetApiState());
+      toast.success(data.message);
+    } catch (error) {
+      toast.error(error.message || "Something went wrong");
+    }
+  };
+
   return (
     <div className="min-h-screen text-cg-text relative overflow-hidden transition-colors duration-200">
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-sky-500/5 via-transparent to-yellow-500/5" />
@@ -57,6 +81,7 @@ export const Layout = ({ children }) => {
               <span>👥</span>
               <span>Commissions</span>
             </NavLink>
+
             <NavLink
               to="/settings"
               className={({ isActive }) =>
@@ -68,14 +93,33 @@ export const Layout = ({ children }) => {
               <span>⚙️</span>
               <span>Settings</span>
             </NavLink>
+
+            <NavLink
+              to="/report-art"
+              className={({ isActive }) =>
+                `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-3 text-base transition-colors duration-200 ${
+                  isActive ? "font-semibold" : ""
+                }`
+              }
+            >
+              <span>⚙️</span>
+              <span>Report Art</span>
+            </NavLink>
           </nav>
-          <div className="px-4 pt-12">
+          <div className="px-4 pt-12 flex flex-col gap-6">
             <NavLink
               to="/post"
               className="block text-center px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-2xl shadow-lg shadow-yellow-500/20 text-base"
             >
               Post
             </NavLink>
+
+            <button
+              onClick={logoutHandler}
+              className="block text-center px-6 py-3 bg-blue-600 hover:bg-blue-500 text-black font-semibold rounded-2xl shadow-lg shadow-yellow-500/20 text-base"
+            >
+              Logout
+            </button>
           </div>
         </aside>
         <main className="col-span-7 border-r border-neutral-300 dark:border-neutral-800 h-screen overflow-hidden transition-colors duration-200">
@@ -86,9 +130,10 @@ export const Layout = ({ children }) => {
             <div className="flex justify-end">
               <ThemeToggle />
             </div>
+
             <div className="cg-card p-5">
               <NavLink
-                to="/artist/me"
+                to={`/artist/${userName}`}
                 className={({ isActive }) =>
                   `flex items-center gap-4 ${
                     isActive ? "opacity-100" : "hover:opacity-90"
@@ -101,9 +146,9 @@ export const Layout = ({ children }) => {
                   className="h-14 w-14 rounded-full ring-2 ring-sky-500/30"
                 />
                 <div>
-                  <div className="font-semibold text-base">You</div>
+                  <div className="font-semibold text-base">{user.name}</div>
                   <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                    @you
+                    @{userName}
                   </div>
                 </div>
               </NavLink>

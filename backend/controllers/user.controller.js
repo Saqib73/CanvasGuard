@@ -3,6 +3,39 @@ import { ErrorHandler } from "../utils/ErrorHandler.js";
 
 export const getUserProfile = async (req, res, next) => {
   try {
+    console.log("inside user profile");
+    const userName = req.params;
+    const user = await User.findOne(userName)
+      .populate({
+        path: "posts",
+        populate: [
+          {
+            path: "author",
+            select: "userName name",
+          },
+          {
+            path: "media",
+            select: "url",
+          },
+        ],
+      })
+      .populate("followers", "userName")
+      .populate("following", "userName");
+
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    return res.json({
+      success: true,
+      user,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getMyProfile = async (req, res, next) => {
+  try {
+    // const userName = req.params;
     const user = await User.findById(req.user._id)
       .populate("posts")
       .populate("followers", "userName")
@@ -18,8 +51,10 @@ export const getUserProfile = async (req, res, next) => {
 
 export const followUser = async (req, res, next) => {
   try {
-    const userId = req.userId; // logged-in user
-    const targetId = req.params.id; // user to follow
+    console.log(req.user);
+    const userId = req.user._id; // logged-in user
+    const { targetId } = req.body;
+    console.log("ids-->", userId, targetId);
 
     if (userId === targetId) {
       return next(new ErrorHandler("You cannot follow yourself", 400));
@@ -43,18 +78,19 @@ export const followUser = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      msg: "User followed successfully",
+      message: "User followed successfully",
     });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ error: err.message });
   }
 };
 
 // Unfollow User
-export const unfollowUser = async (req, res) => {
+export const unfollowUser = async (req, res, next) => {
   try {
-    const userId = req.userId;
-    const targetId = req.params.id;
+    const userId = req.user._id;
+    const { targetId } = req.body;
 
     const user = await User.findById(userId);
     const targetUser = await User.findById(targetId);
@@ -66,20 +102,49 @@ export const unfollowUser = async (req, res) => {
     }
 
     user.following = user.following.filter(
-      (uid) => uid.toString() !== targetId
+      (uid) => uid.toString() !== targetId.toString()
     );
     targetUser.followers = targetUser.followers.filter(
-      (uid) => uid.toString() !== userId
+      (uid) => uid.toString() !== userId.toString()
     );
 
     await user.save();
     await targetUser.save();
 
-    return res.staus(200).json({
+    return res.status(200).json({
       success: true,
-      msg: "User unfollowed successfully",
+      message: "User unfollowed successfully",
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.log(err);
+    next(err);
+  }
+};
+
+export const getAllLikedPosts = async (req, res, next) => {
+  try {
+    const allLikedPosts = await User.findById(req.user._id)
+      .select("likedPosts")
+      .populate({
+        path: "likedPosts",
+        populate: [
+          {
+            path: "author",
+            select: "name userName profilePic",
+          },
+          {
+            path: "media",
+            select: "url",
+          },
+        ],
+      });
+    // .populate("author", "userName name profilePic");
+
+    return res.status(200).json({
+      success: true,
+      allLikedPosts,
+    });
+  } catch (error) {
+    next(error);
   }
 };
