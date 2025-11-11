@@ -5,7 +5,7 @@ const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: `${import.meta.env.VITE_SERVER}/api/v1`,
   }),
-  tagTypes: ["Post", "MyPost", "LikedPosts"],
+  tagTypes: ["Post", "MyPost", "LikedPosts", "Profile"],
   endpoints: (builder) => ({
     getPosts: builder.query({
       query: () => ({
@@ -58,6 +58,7 @@ const api = createApi({
         url: `/user/${userName}`,
         credentials: "include",
       }),
+      providesTags: ["Profile"],
     }),
     getAllLikedPosts: builder.query({
       query: () => ({
@@ -67,12 +68,31 @@ const api = createApi({
       providesTags: ["LikedPosts"],
     }),
     deletePost: builder.mutation({
-      query: ({ postId }) => ({
+      query: ({ postId, isStolen }) => ({
         url: `/posts/${postId}`,
         credentials: "include",
         method: "DELETE",
+        body: { isStolen },
       }),
       invalidatesTags: ["Post"],
+    }),
+    followUser: builder.mutation({
+      query: ({ targetId }) => ({
+        url: "/user/follow",
+        credentials: "include",
+        method: "POST",
+        body: { targetId },
+      }),
+      invalidatesTags: ["Profile"],
+    }),
+    unFollowUser: builder.mutation({
+      query: ({ targetId }) => ({
+        url: "/user/unfollow",
+        credentials: "include",
+        method: "POST",
+        body: { targetId },
+      }),
+      invalidatesTags: ["Profile"],
     }),
   }),
 });
@@ -89,4 +109,6 @@ export const {
   useGetUserProfileQuery,
   useGetAllLikedPostsQuery,
   useDeletePostMutation,
+  useFollowUserMutation,
+  useUnFollowUserMutation,
 } = api;

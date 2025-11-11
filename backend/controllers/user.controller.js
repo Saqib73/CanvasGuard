@@ -51,8 +51,10 @@ export const getMyProfile = async (req, res, next) => {
 
 export const followUser = async (req, res, next) => {
   try {
-    const userId = req.userId; // logged-in user
-    const targetId = req.params.id; // user to follow
+    console.log(req.user);
+    const userId = req.user._id; // logged-in user
+    const { targetId } = req.body;
+    console.log("ids-->", userId, targetId);
 
     if (userId === targetId) {
       return next(new ErrorHandler("You cannot follow yourself", 400));
@@ -76,18 +78,19 @@ export const followUser = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      msg: "User followed successfully",
+      message: "User followed successfully",
     });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ error: err.message });
   }
 };
 
 // Unfollow User
-export const unfollowUser = async (req, res) => {
+export const unfollowUser = async (req, res, next) => {
   try {
-    const userId = req.userId;
-    const targetId = req.params.id;
+    const userId = req.user._id;
+    const { targetId } = req.body;
 
     const user = await User.findById(userId);
     const targetUser = await User.findById(targetId);
@@ -99,21 +102,22 @@ export const unfollowUser = async (req, res) => {
     }
 
     user.following = user.following.filter(
-      (uid) => uid.toString() !== targetId
+      (uid) => uid.toString() !== targetId.toString()
     );
     targetUser.followers = targetUser.followers.filter(
-      (uid) => uid.toString() !== userId
+      (uid) => uid.toString() !== userId.toString()
     );
 
     await user.save();
     await targetUser.save();
 
-    return res.staus(200).json({
+    return res.status(200).json({
       success: true,
-      msg: "User unfollowed successfully",
+      message: "User unfollowed successfully",
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.log(err);
+    next(err);
   }
 };
 

@@ -14,7 +14,7 @@ import {
 } from "../redux/api/api";
 import { BsThreeDots } from "react-icons/bs";
 import axios from "axios";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
 // import { useStore } from "../store";
@@ -31,8 +31,11 @@ export default function Tweet({ post }) {
   const [removing, setRemoving] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const [deletePost, { isLoading: deleteIsLoading, isError, error }] =
-    useDeletePostMutation();
+  const isPostAuthor = post.author.userName == user.userName;
+
+  const menuRef = useRef(null);
+
+  const [deletePost] = useDeletePostMutation();
 
   const author = post.author;
   const isReposted = false;
@@ -85,13 +88,10 @@ export default function Tweet({ post }) {
     setRemoving(true);
     const toastId = toast.loading("Removing Post");
     try {
-      const { data } = await axios.delete(
-        `${import.meta.env.VITE_SERVER}/api/v1/posts/${post._id}`,
-        {
-          data: { isStolen },
-          withCredentials: true,
-        }
-      );
+      const { data } = await deletePost({
+        postId: post._id,
+        isStolen,
+      }).unwrap();
       toast.success(data.message, {
         id: toastId,
       });
@@ -106,6 +106,16 @@ export default function Tweet({ post }) {
       setIsStolen(false);
     }
   };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   return (
     <div className="flex gap-3 p-4 border-b border-neutral-300 dark:border-neutral-800 hover:bg-neutral-800/50 dark:hover:bg-neutral-800/30 transition-colors duration-200">
@@ -136,14 +146,18 @@ export default function Tweet({ post }) {
           </div>
 
           <div
+            ref={menuRef}
             className={`mr-2 dropdown dropdown-end ${
               open ? "dropdown-open" : "dropdown-close"
             }`}
           >
             <button
               tabIndex={0}
-              onClick={() => setOpen((p) => !p)}
-              className=" hover:bg-blue-500/40 hover:shadow-[0_0_0_3px_rgba(29,155,240,0.3)] h-5 w-5 rounded-full flex justify-center items-center"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen((p) => !p);
+              }}
+              className="btn hover:bg-blue-500/40 hover:shadow-[0_0_0_3px_rgba(29,155,240,0.3)] h-5 w-5 rounded-full flex justify-center items-center"
             >
               <BsThreeDots />
             </button>
@@ -151,14 +165,23 @@ export default function Tweet({ post }) {
               tabIndex="-1"
               className={`dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm `}
             >
-              <li>
-                <a>Unfollow User</a>
-              </li>
-              <li>
-                <button onClick={verifyArtTheft}>
-                  Verify against Art theft
+              <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-gray-600 hover:rounded-md hover:cursor-pointer">
+                <button onClick={() => setOpen((p) => !p)}>
+                  Unfollow User
                 </button>
               </li>
+              {!isPostAuthor && (
+                <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-gray-600 hover:rounded-md hover:cursor-pointer">
+                  <button onClick={verifyArtTheft}>
+                    Verify against Art theft
+                  </button>
+                </li>
+              )}
+              {isPostAuthor && (
+                <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-gray-600 hover:rounded-md hover:cursor-pointer">
+                  <button onClick={handleRemove}>Delete Post</button>
+                </li>
+              )}
             </ul>
           </div>
 

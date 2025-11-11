@@ -48,9 +48,9 @@ export const applyWatermark = async (req, res, next) => {
     const visibleSVG = `
       <svg width="400" height="400">
         <style>
-          .title { fill: black; font-size: 85px; font-weight: 600; opacity: 0.8;}
+          .title { fill: black; font-size: 85px; font-weight: 500; opacity: 0.8; font-family: "Brush Script MT", "Lucida Handwriting", cursive;}
         </style>
-        <text x="10" y="50" class="title">© ${userId.slice(0, 6)}</text>
+        <text x="10" y="90" class="title">© ${userId.slice(0, 6)}</text>
       </svg>
     `;
     const visibleBuffer = Buffer.from(visibleSVG);
