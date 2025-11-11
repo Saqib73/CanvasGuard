@@ -104,7 +104,7 @@ export const upload = async (req, res, next) => {
 
 export const createPost = async (req, res, next) => {
   try {
-    const { description, public_id } = req.body;
+    const { description, public_id, isArt } = req.body;
     const userId = req.user._id;
 
     // Ensure at least one of description or media is present
@@ -119,17 +119,11 @@ export const createPost = async (req, res, next) => {
 
     const media = await Media.findOne({ public_id });
 
-    // let newMediaId = undefined;
-    // if (media !== undefined) {
-    //   const newMedia = new Media(media);
-    //   await newMedia.save();
-    //   newMediaId = newMedia._id;
-    // }
-
     const post = new Post({
       author: userId,
       description: description || "",
       media: media._id,
+      isArt,
     });
 
     await post.save();
@@ -214,7 +208,8 @@ export const deletePost = async (req, res, next) => {
 // Like Post
 export const likePost = async (req, res, next) => {
   try {
-    const userId = req.userId;
+    const userId = req.user._id;
+    const user = await User.findById(userId);
     const { postId } = req.body; // postId
 
     const post = await Post.findById(postId);
@@ -224,7 +219,9 @@ export const likePost = async (req, res, next) => {
     }
 
     post.likes.push(userId);
+    user.likedPosts.push(post._id);
     await post.save();
+    await user.save();
 
     return res.json({ msg: "Post liked", likes: post.likes.length });
   } catch (err) {
@@ -235,21 +232,47 @@ export const likePost = async (req, res, next) => {
 // Unlike Post
 export const unlikePost = async (req, res, next) => {
   try {
-    const userId = req.userId;
+    const userId = req.user._id;
     const { postId } = req.body;
 
     const post = await Post.findById(postId);
+    const user = await User.findById(userId);
     if (!post) return next(new ErrorHandler("Post not Found", 404));
 
     if (!post.likes.includes(userId)) {
       return res.status(400).json({ msg: "You haven't liked this post" });
     }
 
-    post.likes = post.likes.filter((uid) => uid.toString() !== userId);
+    post.likes = post.likes.filter(
+      (uid) => uid.toString() !== userId.toString()
+    );
+
+    user.likedPosts = user.likedPosts.filter((p) => p.toString() !== post._id);
     await post.save();
+    await user.save();
+    console.log("Unliked");
 
     return res.json({ msg: "Post unliked", likes: post.likes.length });
   } catch (err) {
     next(err);
   }
 };
+
+export const getUserPosts = async (req, res, next) => {
+  try {
+    const userId = req.body;
+    const userPosts = await Post.find({ author: userId })
+      .populate("author", "userName name")
+      .populate("media", "url");
+
+    return res.status(200).json({
+      success: true,
+      myPosts: userPosts,
+    });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+};
+
+// export const

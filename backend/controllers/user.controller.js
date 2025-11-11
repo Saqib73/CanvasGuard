@@ -3,6 +3,39 @@ import { ErrorHandler } from "../utils/ErrorHandler.js";
 
 export const getUserProfile = async (req, res, next) => {
   try {
+    console.log("inside user profile");
+    const userName = req.params;
+    const user = await User.findOne(userName)
+      .populate({
+        path: "posts",
+        populate: [
+          {
+            path: "author",
+            select: "userName name",
+          },
+          {
+            path: "media",
+            select: "url",
+          },
+        ],
+      })
+      .populate("followers", "userName")
+      .populate("following", "userName");
+
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    return res.json({
+      success: true,
+      user,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getMyProfile = async (req, res, next) => {
+  try {
+    // const userName = req.params;
     const user = await User.findById(req.user._id)
       .populate("posts")
       .populate("followers", "userName")
@@ -81,5 +114,33 @@ export const unfollowUser = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
+  }
+};
+
+export const getAllLikedPosts = async (req, res, next) => {
+  try {
+    const allLikedPosts = await User.findById(req.user._id)
+      .select("likedPosts")
+      .populate({
+        path: "likedPosts",
+        populate: [
+          {
+            path: "author",
+            select: "name userName profilePic",
+          },
+          {
+            path: "media",
+            select: "url",
+          },
+        ],
+      });
+    // .populate("author", "userName name profilePic");
+
+    return res.status(200).json({
+      success: true,
+      allLikedPosts,
+    });
+  } catch (error) {
+    next(error);
   }
 };

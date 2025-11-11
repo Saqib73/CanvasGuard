@@ -66,10 +66,10 @@ export default function Login() {
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label
-                htmlFor="email"
+                htmlFor="userName"
                 className="block text-sm/6 font-medium  text-gray-100"
               >
-                Email address
+                Username
               </label>
               <div className="mt-2">
                 <input

@@ -20,18 +20,24 @@ const userSchema = new Schema(
       required: true,
       minLength: 6,
     },
-    posts: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Post",
-    },
-    comments: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Comment",
-    },
-    likedPosts: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Post",
-    },
+    posts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post",
+      },
+    ],
+    comments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
+      },
+    ],
+    likedPosts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post",
+      },
+    ],
     isArtist: {
       type: Boolean,
       required: true,
@@ -39,11 +45,11 @@ const userSchema = new Schema(
     profilePic: {
       public_id: {
         type: String,
-        required: true,
+        // required: true,
       },
       url: {
         type: String,
-        required: true,
+        // required: true,
       },
     },
     communities: {

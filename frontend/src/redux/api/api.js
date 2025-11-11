@@ -5,7 +5,7 @@ const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: `${import.meta.env.VITE_SERVER}/api/v1`,
   }),
-  tagTypes: ["Post"],
+  tagTypes: ["Post", "MyPost", "LikedPosts"],
   endpoints: (builder) => ({
     getPosts: builder.query({
       query: () => ({
@@ -28,10 +28,56 @@ const api = createApi({
         body: data,
       }),
     }),
+    getMyPosts: builder.query({
+      query: () => ({
+        url: "/posts/getMyPosts",
+        credentials: "include",
+      }),
+      providesTags: ["MyPost"],
+    }),
+    sendLike: builder.mutation({
+      query: (data) => ({
+        url: "/posts/like",
+        method: "POST",
+        body: data,
+        credentials: "include",
+      }),
+      invalidatesTags: ["Post", "LikedPosts"],
+    }),
+    disLike: builder.mutation({
+      query: (data) => ({
+        url: "/posts/unlike",
+        method: "POST",
+        body: data,
+        credentials: "include",
+      }),
+      invalidatesTags: ["Post", "LikedPosts"],
+    }),
+    getUserProfile: builder.query({
+      query: ({ userName }) => ({
+        url: `/user/${userName}`,
+        credentials: "include",
+      }),
+    }),
+    getAllLikedPosts: builder.query({
+      query: () => ({
+        url: "/user/getLikedPosts",
+        credentials: "include",
+      }),
+      providesTags: ["LikedPosts"],
+    }),
   }),
 });
 
 export default api;
 
-export const { useGetPostsQuery, useGetPostQuery, useGetCommentsMutation } =
-  api;
+export const {
+  useGetPostsQuery,
+  useGetPostQuery,
+  useGetCommentsMutation,
+  useGetMyPostsQuery,
+  useSendLikeMutation,
+  useDisLikeMutation,
+  useGetUserProfileQuery,
+  useGetAllLikedPostsQuery,
+} = api;

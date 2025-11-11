@@ -8,6 +8,7 @@ import {
   likePost,
   unlikePost,
   upload,
+  getUserPosts,
 } from "../controllers/post.controller.js";
 import { attachMentUpload } from "../middleware/multer.middleware.js";
 import {
@@ -21,12 +22,13 @@ const router = express.Router();
 router.use(authMiddleware);
 router.post("/createPost", createPost); // Create Post
 router.get("/", getAllPosts); // Get All Posts
+router.get("/getMyPosts", getUserPosts);
 router.post("/upload", attachMentUpload, upload);
 router.post("/watermark", applyWatermark);
 router.post("/verify", verifyOwnership);
 router.get("/:postId", getPost); // Get Post by ID
 router.delete("/:id", deletePost); // Delete Post
-router.post("/:id/like", likePost); // Like Post
-router.post("/:id/unlike", unlikePost); // Unlike Post
+router.post("/like", likePost); // Like Post
+router.post("/unlike", unlikePost); // Unlike Post
 
 export default router;

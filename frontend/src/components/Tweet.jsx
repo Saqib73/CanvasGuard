@@ -5,30 +5,54 @@ function formatCount(n) {
 }
 
 import { Link } from "react-router-dom";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import { useDisLikeMutation, useSendLikeMutation } from "../redux/api/api";
+// import { useStore } from "../store";
 
 export default function Tweet({ post }) {
+  const { user } = useSelector((state) => state.auth);
+  // const [isLiked, setIsLiked] = useState(false);
+  const isLiked = post.likes.includes(user._id);
+  const [sendLike, { sendLikeData, sendLikeIsLoading, sendLikeisError }] =
+    useSendLikeMutation();
+  const [disLike] = useDisLikeMutation();
   // const { users, toggleLike, toggleRepost } = useStore();
-  // const author = users[post.authorId];
-  // const isLiked = post.likes.has("me");
-  // const isReposted = post.reposts.has("me");
+  // let isLiked = false;
   const author = post.author;
-  const isLiked = true;
   const isReposted = false;
 
+  const toggleLike = async () => {
+    if (isLiked == false) {
+      await sendLike({ postId: post._id });
+    } else {
+      await disLike({ postId: post._id });
+    }
+    // setIsLiked((prev) => !prev);
+  };
+
   return (
-    <div className="flex gap-3 p-4 border-b border-neutral-300 dark:border-neutral-800 hover:bg-neutral-600/50 dark:hover:bg-neutral-800/30 transition-colors duration-200">
-      <img
-        alt="avatar"
-        // src={post}
-        className="h-10 w-10 rounded-full ring-1 ring-neutral-300 dark:ring-neutral-800"
-      />
+    <div className="flex gap-3 p-4 border-b border-neutral-300 dark:border-neutral-800 hover:bg-neutral-800/50 dark:hover:bg-neutral-800/30 transition-colors duration-200">
+      <Link to={`/artist/${author.userName}`}>
+        <img
+          alt="avatar"
+          // src={post}
+          className="h-10 w-10 rounded-full ring-1 ring-neutral-300 dark:ring-neutral-800"
+        />
+      </Link>
       <div className="flex-1">
         <div className="flex gap-2 items-center text-sm">
-          <span className="font-semibold text-cg-text">{author?.userName}</span>
+          <Link to={`/artist/${author.userName}`} className=" hover:underline">
+            <span className="font-semibold text-cg-text">
+              {author?.userName}
+            </span>
+          </Link>
           {author?.verified && <span className="text-sky-400">✔</span>}
-          <span className="text-neutral-500 dark:text-neutral-400">
-            @{author?.handle}
-          </span>
+          <Link to={`/artist/${author.userName}`}>
+            <span className="text-neutral-500 dark:text-neutral-400">
+              @{author?.userName}
+            </span>
+          </Link>
         </div>
         <Link
           to={`/post/${post._id}`}
@@ -90,13 +114,14 @@ export default function Tweet({ post }) {
           <button
             className={`${
               isLiked ? "text-pink-500" : "hover:text-pink-500"
-            } flex items-center gap-2 transition-colors duration-200`}
-            onClick={() => toggleLike(post.id, "me")}
+            } flex items-center gap-2  duration-200 transition-transform`}
+            onClick={toggleLike}
+            disabled={sendLikeIsLoading}
           >
-            <span>❤</span>
-            <span>
-              Like {post.likes.size ? formatCount(post.likes.size) : ""}
-            </span>
+            {/* <span> */}
+            {isLiked ? <FaHeart /> : <FaRegHeart />}
+            {/* </span> */}
+            <span>{post.likes.size ? formatCount(post.likes.size) : ""}</span>
           </button>
           <button
             className="hover:text-neutral-700 dark:hover:text-neutral-200 flex items-center gap-2 transition-colors duration-200"

@@ -3,12 +3,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-export default function Post() {
+export default function CreatePost() {
   const [text, setText] = useState("");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [watermarked, setWatermarked] = useState(true);
   const [isUploaded, setIsUploaded] = useState(false);
+  const [isArt, setIsArt] = useState(false);
   const [publicid, setPublicid] = useState();
   const [url, seturl] = useState();
   const [isUploading, setIsUploading] = useState(false);
@@ -106,6 +107,7 @@ export default function Post() {
         {
           public_id: publicid,
           description: text,
+          isArt,
         },
         {
           withCredentials: true,
@@ -131,7 +133,7 @@ export default function Post() {
       <div className="sticky top-0 backdrop-blur bg-black/60 border-b border-neutral-800 p-3 font-semibold">
         Post
       </div>
-      <div className="p-4 space-y-4 min-h-[50vh]">
+      <div className="p-4 space-y-4 min-h-[50vh] overflow-scroll">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -155,6 +157,18 @@ export default function Post() {
               onChange={(e) => setNoAI(e.target.checked)}
             />{" "}
             No AI training
+          </label>
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={isArt}
+              // value={true}
+              onChange={(e) => {
+                setIsArt(e.target.checked);
+              }}
+            />{" "}
+            Is Art?
           </label>
         </div>
 
@@ -182,7 +196,7 @@ export default function Post() {
             <img
               src={preview}
               alt="preview"
-              className="max-h-80 rounded-lg shadow-xl shadow-black/40"
+              className="max-h-60 rounded-lg shadow-xl shadow-black/40"
             />
             {/* {watermarked && (
               <div className="absolute inset-0 grid place-items-center pointer-events-none">
