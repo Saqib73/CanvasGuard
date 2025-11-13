@@ -11,7 +11,7 @@ export const getUserProfile = async (req, res, next) => {
         populate: [
           {
             path: "author",
-            select: "userName name",
+            select: "userName name profilePic",
           },
           {
             path: "media",

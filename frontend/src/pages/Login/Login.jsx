@@ -3,13 +3,17 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { userExists } from "../../redux/reducers/auth";
 import toast from "react-hot-toast";
+import SignupForm from "./SignUp";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
+  const [isLogin, setIsLogin] = useState(true);
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -38,7 +42,18 @@ export default function Login() {
         id: toastId,
       });
 
-      dispatch(userExists(data.userId));
+      if (data.user.isArtist && !data.user.artistProfile) {
+        console.log("setting artist is pending");
+        // dispatch(
+        //   userExists({
+        //     user: data,
+        //     artistPendingSetup: data.isArtist && !data.artistProfile,
+        //   })
+        // );
+        navigate("/setup");
+      } else {
+        dispatch(userExists(data));
+      }
     } catch (error) {
       console.error(error);
       toast.error(error.message, {
@@ -49,7 +64,7 @@ export default function Login() {
     }
   };
 
-  return (
+  return isLogin ? (
     <>
       {/*
         This example requires updating your template:
@@ -137,15 +152,17 @@ export default function Login() {
 
           <p className="mt-10 text-center text-sm/6 text-gray-500 dark:text-gray-400">
             Not a member?{" "}
-            <a
-              href="#"
+            <button
+              onClick={() => setIsLogin(false)}
               className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
             >
-              Start a 14 day free trial
-            </a>
+              Sign Up
+            </button>
           </p>
         </div>
       </div>
     </>
+  ) : (
+    <SignupForm setIsLogin={setIsLogin} />
   );
 }
