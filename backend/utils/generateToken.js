@@ -14,7 +14,7 @@ const generateTokenAndCookie = (userId, res, message) => {
 
   return res.cookie("jwt", token, cookieOptions).json({
     success: true,
-    userId,
+    user: userId,
     message,
   });
 };

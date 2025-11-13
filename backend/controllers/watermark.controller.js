@@ -9,6 +9,7 @@ import { promisify } from "util";
 import { Media } from "../model/Media.js";
 import { generateImageHashes } from "../utils/hashUtils.js";
 import { Post } from "../model/Post.js";
+import { User } from "../model/User.js";
 
 const execAsync = promisify(exec);
 
@@ -48,7 +49,7 @@ export const applyWatermark = async (req, res, next) => {
     const visibleSVG = `
       <svg width="400" height="400">
         <style>
-          .title { fill: black; font-size: 85px; font-weight: 500; opacity: 0.8; font-family: "Brush Script MT", "Lucida Handwriting", cursive;}
+          .title { fill: black; font-size: 100px; font-weight: 500; opacity: 0.8; font-family: "Brush Script MT", "Lucida Handwriting", cursive;}
         </style>
         <text x="10" y="90" class="title">© ${userId.slice(0, 6)}</text>
       </svg>
@@ -68,11 +69,11 @@ export const applyWatermark = async (req, res, next) => {
     const watermarkPath = path.join(tempDir, `${uuid}_watermark.txt`);
     const stegoPath = path.join(tempDir, `${uuid}_stego.png`);
 
-    await fs.writeFile(origPath, visibleImageBuffer);
-    await fs.writeFile(
-      watermarkPath,
-      `userId:${userId}\nsignature:${signature}`
-    );
+    const watermarkContent = `userId:${userId}\nsignature:${signature}`;
+    await Promise.all([
+      fs.writeFile(origPath, visibleImageBuffer),
+      fs.writeFile(watermarkPath, watermarkContent),
+    ]);
 
     const openstegoJar = path.join(
       process.cwd(),
@@ -107,40 +108,49 @@ export const applyWatermark = async (req, res, next) => {
       stream.end(stegoBuffer);
     });
 
-    // const buffer = await fs.readFile(tempPath);
-
-    await Media.deleteOne({ public_id });
-
-    try {
-      await cloudinary.uploader
-        .destroy(public_id)
-        .then((res) => console.log(res));
-    } catch (err) {
-      console.warn("Failed to delete original image:", err.message);
-    }
-
-    // 8️⃣ Store hash
-    await Media.create({
-      public_id: uploaded.public_id,
-      url: uploaded.url,
-      userId,
-      sha256,
-      phash,
-      type,
-      isWaterMarked: true,
-    });
-
-    // 9️⃣ Cleanup
-    await fs.rm(origPath, { force: true });
-    await fs.rm(watermarkPath, { force: true });
-    await fs.rm(stegoPath, { force: true });
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Visible + Invisible watermark applied successfully",
       url: uploaded.secure_url,
       public_id: uploaded.public_id,
       signature,
+    });
+
+    // 9️⃣ Continue processing in background
+    setImmediate(async () => {
+      try {
+        const { sha256, phash } = await generateImageHashes(stegoBuffer);
+        await Media.deleteOne({ public_id }); // remove old media
+        await Media.create({
+          public_id: uploaded.public_id,
+          url: uploaded.url,
+          userId,
+          sha256,
+          phash,
+          type,
+          isWaterMarked: true,
+        });
+
+        // delete old file from cloudinary
+        try {
+          await cloudinary.uploader.destroy(public_id);
+        } catch (err) {
+          console.warn("Failed to delete original image:", err.message);
+        }
+
+        // cleanup temp files
+        await Promise.all([
+          fs.rm(origPath, { force: true }),
+          fs.rm(watermarkPath, { force: true }),
+          fs.rm(stegoPath, { force: true }),
+        ]);
+
+        console.log(
+          `✅ Hashes computed + media updated for ${uploaded.public_id}`
+        );
+      } catch (bgErr) {
+        console.error("Background hash computation failed:", bgErr.message);
+      }
     });
   } catch (err) {
     console.error("Watermarking failed:", err);
@@ -395,19 +405,31 @@ export const verifyOwnership = async (req, res) => {
 
     const similarMedia = await Media.find();
     for (const m of similarMedia) {
+      if (m._id.toString() === media._id.toString()) continue;
+      // console.log("similar media", m);
       const dist = [...phash].reduce(
         (acc, bit, i) => acc + (bit !== m.phash[i] ? 1 : 0),
         0
       );
-      if (dist < 10 && m.userId.toString() === userId) {
-        return res.status(200).json({
-          success: true,
-          verifiedBy: "hash",
-          message: "Ownership verified via perceptual hash similarity.",
-          matchFound: true,
-          stolenPost: post,
-          originalMedia: m,
-        });
+      if (dist < 20) {
+        const post = await Post.findOne({ media: m._id });
+        console.log("post", post);
+        const postId = post._id;
+        const user = await User.findOne({ posts: postId });
+        console.log("user", user);
+        const muserId = user._id;
+        console.log("userId", muserId, userId);
+        if (muserId.toString() === userId) {
+          return res.status(200).json({
+            success: true,
+            verifiedBy: "hash",
+            message: "Ownership verified via perceptual hash similarity.",
+            matchFound: true,
+            stolenPost: post,
+            originalMedia: m,
+            isStolen: true,
+          });
+        }
       }
     }
 

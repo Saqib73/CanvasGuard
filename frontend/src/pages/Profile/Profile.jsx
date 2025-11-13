@@ -88,7 +88,7 @@ export default function Profile() {
       {/* Profile Header */}
       <div className="px-4 -mt-10 flex items-end gap-4">
         <img
-          // src={user}
+          src={user.user?.profilePic?.url}
           alt="avatar"
           className="h-24 w-24 rounded-full ring-4 ring-black"
         />

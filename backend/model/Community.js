@@ -1,36 +1,49 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
-const communitySchema = new Schema({
+const communitySchema = new Schema(
+  {
     name: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
+      unique: true,
+    },
+    description: {
+      type: String,
+      required: true,
     },
     coverArt: {
-        public_id: {
-            type: String,
-            required: True,
-        },
-        url: {
-            type: String,
-            required: true,
-        },
+      public_id: {
+        type: String,
+        required: true,
+      },
+      url: {
+        type: String,
+        required: true,
+      },
     },
-    members: {
+    members: [
+      {
         type: Schema.Types.ObjectId,
         ref: "User",
-    },
+      },
+    ],
     createdBy: {
-        type: Schema.Types.ObjectId,
-        ref: "User",
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
-    posts: {
+    posts: [
+      {
         type: Schema.Types.ObjectId,
         ref: "Post",
-    },
+      },
+    ],
     rules: {
-        type: String,
+      type: String,
+      default: "",
     },
-}, {timestamps: true});
+  },
+  { timestamps: true }
+);
 
 export const Community = mongoose.model("Community", communitySchema);

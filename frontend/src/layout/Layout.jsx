@@ -141,7 +141,7 @@ export const Layout = ({ children }) => {
                 }
               >
                 <img
-                  src="https://ui-avatars.com/api/?name=You&background=111827&color=fff"
+                  src={user.profilePic?.url}
                   alt="avatar"
                   className="h-14 w-14 rounded-full ring-2 ring-sky-500/30"
                 />

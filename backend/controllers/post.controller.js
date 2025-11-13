@@ -40,62 +40,41 @@ export const upload = async (req, res, next) => {
 
     const userId = req.userId;
     const file = files[0];
-    const tempDir = path.join(process.cwd(), "temp");
-    await fs.mkdir(tempDir, { recursive: true });
-
-    // Save uploaded buffer to temp file
-    const tempPath = path.join(tempDir, `${Date.now()}_${file.originalname}`);
-    await fs.writeFile(tempPath, file.buffer);
 
     // Generate hash from the temp file
     // const newHash = await generateImageHash(tempPath);
-    const buffer = await fs.readFile(tempPath);
-    const { sha256, phash } = await generateImageHashes(buffer);
-
-    if (!sha256 || !phash) {
-      return res.status(500).json({
-        success: "failed",
-        message: "hash generation failed",
-      });
-    }
-
-    //  Check against existing hashes in DB
-    // const existingHashes = await Media.find();
-    // for (const existing of existingHashes) {
-    //   if (areImagesSimilar(newHash, existing.hash)) {
-    //     fs.unlink(tempPath);
-    //     return res.status(409).json({
-    //       success: false,
-    //       message:
-    //         "This image already exists or is very similar to another upload.",
-    //     });
-    //   }
-    // }
-
-    // 3️⃣ If unique, upload to Cloudinary
     const result = await uploadFilesToCloudinary(files);
 
-    // Store hash with Cloudinary public_id for quick lookup
-    await Media.create({
-      public_id: result[0].public_id,
-      url: result[0].url,
-      type: "image",
-      userId,
-      sha256,
-      phash,
-      isWaterMarked: false,
-    });
-
-    // Cleanup local file
-    await fs.unlink(tempPath);
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       public_id: result[0].public_id,
       url: result[0].url,
-      sha256,
-      phash,
       message: "File uploaded successfully.",
+    });
+
+    setImmediate(async () => {
+      try {
+        const { sha256, phash } = await generateImageHashes(file.buffer);
+
+        await Media.create({
+          public_id: result[0].public_id,
+          url: result[0].url,
+          type: "image",
+          userId,
+          sha256,
+          phash,
+          isWaterMarked: false,
+        });
+
+        console.log(
+          `✅ Hashes computed and media saved for ${result[0].public_id}`
+        );
+      } catch (bgErr) {
+        console.error(
+          "⚠️ Failed to compute hashes in background:",
+          bgErr.message
+        );
+      }
     });
   } catch (error) {
     console.error(error);
@@ -196,8 +175,11 @@ export const deletePost = async (req, res, next) => {
     const post = await Post.findById(postId).populate("media", "public_id");
 
     if (!post) return next(new ErrorHandler("Post not found", 404));
+    // console.log(post.author, req.user._id);
+    console.log("post.author:", post.author, typeof post.author);
+    console.log("req.user._id:", req.user._id, typeof req.user._id);
 
-    if (post.author.toString() !== req.user._Id && !isStolen) {
+    if (post.author.toString() !== req.user._id.toString() && !isStolen) {
       return next(new ErrorHandler("Not authorized", 403));
     }
 
@@ -290,7 +272,7 @@ export const getUserPosts = async (req, res, next) => {
   try {
     const userId = req.body;
     const userPosts = await Post.find({ author: userId })
-      .populate("author", "userName name")
+      .populate("author", "userName name profilePic")
       .populate("media", "url");
 
     return res.status(200).json({

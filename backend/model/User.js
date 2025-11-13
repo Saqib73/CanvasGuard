@@ -11,9 +11,14 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    email: {
+      type: String,
+      required: true,
+    },
     bio: {
       type: String,
       maxLength: 30,
+      default: "new user",
     },
     password: {
       type: String,
@@ -42,20 +47,27 @@ const userSchema = new Schema(
       type: Boolean,
       required: true,
     },
+    artistProfile: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ArtistProfile",
+    },
+
     profilePic: {
       public_id: {
         type: String,
-        // required: true,
+        required: true,
       },
       url: {
         type: String,
-        // required: true,
+        required: true,
       },
     },
-    communities: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Community",
-    },
+    communities: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Community",
+      },
+    ],
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,

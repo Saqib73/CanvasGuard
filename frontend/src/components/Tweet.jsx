@@ -20,7 +20,7 @@ import { useEffect } from "react";
 // import { useStore } from "../store";
 
 export default function Tweet({ post }) {
-  const { user } = useSelector((state) => state.auth);
+  const { user, loader } = useSelector((state) => state.auth);
   // const [isLiked, setIsLiked] = useState(false);
   const isLiked = post.likes.includes(user._id);
   const [sendLike, { sendLikeData, sendLikeIsLoading, sendLikeisError }] =
@@ -31,7 +31,9 @@ export default function Tweet({ post }) {
   const [removing, setRemoving] = useState(false);
   const [open, setOpen] = useState(false);
 
+  console.log(post.author.userName, user.userName);
   const isPostAuthor = post.author.userName == user.userName;
+  console.log("is author-->", isPostAuthor);
 
   const menuRef = useRef(null);
 
@@ -88,17 +90,18 @@ export default function Tweet({ post }) {
     setRemoving(true);
     const toastId = toast.loading("Removing Post");
     try {
-      const { data } = await deletePost({
+      const res = await deletePost({
         postId: post._id,
         isStolen,
       }).unwrap();
-      toast.success(data.message, {
+      console.log(res);
+      toast.success(res?.message, {
         id: toastId,
       });
-      console.log(data);
+      // console.log(data);
     } catch (error) {
       console.error(error);
-      toast.error(error.response.data?.message || "Something wen wrong", {
+      toast.error(error.response?.data?.message || "Something wen wrong", {
         id: toastId,
       });
     } finally {
@@ -117,12 +120,14 @@ export default function Tweet({ post }) {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  if (loader) return <div>Loading...</div>;
+
   return (
     <div className="flex gap-3 p-4 border-b border-neutral-300 dark:border-neutral-800 hover:bg-neutral-800/50 dark:hover:bg-neutral-800/30 transition-colors duration-200">
       <Link to={`/artist/${author.userName}`}>
         <img
           alt="avatar"
-          // src={post}
+          src={post.author?.profilePic?.url}
           className="h-10 w-10 rounded-full ring-1 ring-neutral-300 dark:ring-neutral-800"
         />
       </Link>
@@ -217,9 +222,9 @@ export default function Tweet({ post }) {
         </div>
         <Link
           to={`/post/${post._id}`}
-          className="block whitespace-pre-wrap text-[15px] leading-5 mt-1 hover:underline text-cg-text"
+          className="block whitespace-pre-wrap text-[15px] leading-5 mt-1 text-cg-text"
         >
-          {post.text}
+          {post.description}
         </Link>
         {post.media.url && (
           <Link

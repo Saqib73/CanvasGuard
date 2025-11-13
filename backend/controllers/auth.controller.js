@@ -6,6 +6,8 @@ import {
   generateTokenAndCookie,
 } from "../utils/generateToken.js";
 import { ErrorHandler } from "../utils/ErrorHandler.js";
+import { ArtistProfile } from "../model/ArtistProfile.js";
+import { uploadFilesToCloudinary } from "../features/uploadFilesToCoudinary.js";
 
 // Signup
 export const signup = async (req, res, next) => {
@@ -20,15 +22,18 @@ export const signup = async (req, res, next) => {
       bio = "New User";
     }
 
-    // const file = req.file;
+    const file = req.file;
+    console.log("file-->", file);
 
-    // if (!file) return new Error("please upload profile");
-    // const result = await uploadFilesToCloudinary([file]);
+    if (!file) return new ErrorHandler("please upload profile", 403);
+    const result = await uploadFilesToCloudinary([file]);
 
-    // const profile_pic = {
-    //   public_id: result[0].public_id,
-    //   url: result[0].url,
-    // };
+    const profilePic = {
+      public_id: result[0].public_id,
+      url: result[0].url,
+    };
+
+    // console.log()
 
     const existing = await User.findOne({ userName });
     console.log(existing);
@@ -42,12 +47,12 @@ export const signup = async (req, res, next) => {
       password: hashedPassword,
       email,
       bio,
-      // profile_pic,
+      profilePic,
       isArtist,
     });
 
     await user.save();
-    generateTokenAndCookie(user._id, res, "User Created");
+    generateTokenAndCookie(user, res, "User Created");
   } catch (err) {
     console.error(err);
     next(err);
@@ -78,4 +83,31 @@ export const logout = async (req, res) => {
       success: true,
       message: "Logged out successfulyy!",
     });
+};
+
+export const setupArtistProfile = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+    const { artStyles, baseFee, bio, samples } = req.body;
+
+    const artistProfile = await ArtistProfile.create({
+      user: userId,
+      artStyles,
+      baseFee,
+      bio,
+      samples,
+    });
+
+    user.artistProfile = artistProfile._id;
+    await user.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Signed Up!",
+      user,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
