@@ -1,3 +1,4 @@
+import { uploadFilesToCloudinary } from "../features/uploadFilesToCoudinary.js";
 import { User } from "../model/User.js";
 import { ErrorHandler } from "../utils/ErrorHandler.js";
 
@@ -27,6 +28,44 @@ export const getUserProfile = async (req, res, next) => {
     return res.json({
       success: true,
       user,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user._id; // assuming you have auth middleware setting req.user
+    const { name, bio } = req.body;
+
+    const updateFields = {};
+
+    if (req.file) {
+      const file = req.file;
+
+      const result = await uploadFilesToCloudinary([file]);
+
+      const profilePic = {
+        public_id: result[0].public_id,
+        url: result[0].url,
+      };
+      updateFields.profilePic = profilePic;
+    }
+
+    if (name) updateFields.name = name;
+    if (bio) updateFields.bio = bio;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      { new: true }
+    ).select("-password");
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
     });
   } catch (err) {
     next(err);

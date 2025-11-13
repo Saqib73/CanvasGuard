@@ -6,6 +6,7 @@ import auth from "./routes/auth.route.js";
 import user from "./routes/user.route.js";
 import comment from "./routes/comment.route.js";
 import post from "./routes/post.route.js";
+import commission from "./routes/commission.js";
 import cookies from "cookie-parser";
 import cloudinary from "cloudinary";
 import cors from "cors";
@@ -33,6 +34,7 @@ app.use("/api/v1/auth", auth);
 app.use("/api/v1/user", user);
 app.use("/api/v1/comment", comment);
 app.use("/api/v1/posts", post);
+app.use("/api/v1/commissions", commission);
 
 app.listen(PORT, () => {
   connectToMongoDB();

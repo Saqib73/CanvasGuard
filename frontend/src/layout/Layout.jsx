@@ -143,7 +143,7 @@ export const Layout = ({ children }) => {
                 <img
                   src={user.profilePic?.url}
                   alt="avatar"
-                  className="h-14 w-14 rounded-full ring-2 ring-sky-500/30"
+                  className="h-14 w-14 rounded-full object-cover ring-2 ring-sky-500/30"
                 />
                 <div>
                   <div className="font-semibold text-base">{user.name}</div>

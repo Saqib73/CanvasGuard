@@ -102,7 +102,7 @@ export const createPost = async (req, res, next) => {
     const post = new Post({
       author: userId,
       description: description || "",
-      media: media._id,
+      ...(media && { media: media._id }),
       isArt,
     });
 
@@ -123,7 +123,11 @@ export const createPost = async (req, res, next) => {
 // Get All Posts
 export const getAllPosts = async (req, res, next) => {
   try {
-    const posts = await Post.find()
+    const { following, isArt } = req.query;
+    console.log(req.params);
+    const query = {};
+    if (isArt === "true") query.isArt = true;
+    let posts = await Post.find(query)
       .sort({ createdAt: -1 })
       .limit(50)
       .populate("author", "userName profilePic")
@@ -132,6 +136,14 @@ export const getAllPosts = async (req, res, next) => {
         populate: { path: "author", select: "userName profilePic" },
       })
       .populate("media", "url");
+
+    if (following === "true") {
+      const user = await User.findById(req.user._id).populate("following");
+      const followingIds = user.following.map((f) => f._id.toString());
+      posts = posts.filter((p) =>
+        followingIds.includes(p.author._id.toString())
+      );
+    }
 
     return res.status(200).json({
       success: true,

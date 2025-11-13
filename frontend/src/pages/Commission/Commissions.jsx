@@ -15,17 +15,25 @@ export default function Commissions() {
 
   const fetchArtists = async () => {
     const params = new URLSearchParams();
+    console.log(params);
     for (const key in filters) {
       if (filters[key]) params.append(key, filters[key]);
     }
 
-    const res = await axios.get(`/api/artists?${params.toString()}`);
-    setArtists(res.data);
+    const res = await axios.get(
+      `${
+        import.meta.env.VITE_SERVER
+      }/api/v1/commissions/get?${params.toString()}`,
+      {
+        withCredentials: true,
+      }
+    );
+    setArtists(res.data.artists);
   };
 
-  // useEffect(() => {
-  //   fetchArtists();
-  // }, []);
+  useEffect(() => {
+    fetchArtists();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,7 +51,7 @@ export default function Commissions() {
         onSubmit={handleFilter}
         className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6"
       >
-        <select name="open" onChange={handleChange}>
+        <select name="open" onChange={handleChange} className="rounded-md p-1">
           <option value="">All</option>
           <option value="true">Open</option>
           <option value="false">Closed</option>
@@ -52,21 +60,24 @@ export default function Commissions() {
           type="text"
           name="style"
           placeholder="Art style"
+          className="rounded-md p-1"
           onChange={handleChange}
         />
         <input
           type="number"
           name="minFee"
           placeholder="Min fee"
+          className="rounded-md p-1"
           onChange={handleChange}
         />
         <input
           type="number"
           name="maxFee"
           placeholder="Max fee"
+          className="rounded-md p-1"
           onChange={handleChange}
         />
-        <select name="sort" onChange={handleChange}>
+        <select name="sort" onChange={handleChange} className="rounded-md p-1">
           <option value="">Sort</option>
           <option value="fee_low">Lowest fee</option>
           <option value="fee_high">Highest fee</option>
@@ -86,7 +97,7 @@ export default function Commissions() {
             <img
               src={a.user?.profilePic?.url || "/default.png"}
               alt={a.user?.name}
-              className="w-20 h-20 rounded-full mb-2"
+              className="w-20 h-20 rounded-full object-cover mb-2"
             />
             <h2 className="font-semibold">{a.user?.name}</h2>
             <p className="text-sm text-gray-600">{a?.artStyles?.join(", ")}</p>

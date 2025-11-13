@@ -10,6 +10,7 @@ import {
 } from "../../redux/api/api.js";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { formattedDate } from "../../helpers/utils.js";
 
 export default function Profile() {
   const { userName } = useParams();
@@ -26,6 +27,8 @@ export default function Profile() {
   // console.log(userPosts);
   const isOwnProfile = authUser.userName === userName;
   const [isFollowing, setIsFollowing] = useState(false);
+
+  const [joined, setJoined] = useState("");
 
   const handleFollow = async () => {
     const toastId = toast.loading("Following...");
@@ -67,16 +70,18 @@ export default function Profile() {
       const isFollowed = user.user.followers.some(
         (f) => f._id === authUser._id
       );
+      console.log(isFollowed);
       setIsFollowing(isFollowed);
     }
-  }, [user?.user, authUser, user]);
+    setJoined(formattedDate(user?.user));
+  }, [user?.user.followers, authUser, user]);
 
-  // useEffect(() => {
-  //   console.log("user-->", user);
-  //   // console.log(data);
-  //   // console.log(isError);
-  //   // console.log(data);
-  // }, [user]);
+  useEffect(() => {
+    console.log("user-->", user);
+    // console.log(data);
+    // console.log(isError);
+    // console.log(data);
+  }, [user]);
 
   return profileIsLoading ? (
     <div>Loading...</div>
@@ -90,7 +95,7 @@ export default function Profile() {
         <img
           src={user.user?.profilePic?.url}
           alt="avatar"
-          className="h-24 w-24 rounded-full ring-4 ring-black"
+          className="h-24 w-24 rounded-full ring-4 object-cover ring-black"
         />
         <div className="flex-1" />
         {isOwnProfile ? (
@@ -159,8 +164,7 @@ export default function Profile() {
       </div>
 
       <div className="px-4 mt-3 text-[15px] text-neutral-200">
-        Download Free Exclusive PSD Files, PSD graphics, PSD Templates, PSD
-        backgrounds and many PhotoShop resources.
+        {user.user.bio}
       </div>
 
       <div className="px-4 mt-3 flex flex-wrap gap-4 text-sm text-neutral-400">
@@ -176,7 +180,7 @@ export default function Profile() {
         </div>
         <div className="flex items-center gap-2">
           <span>📅</span>
-          <span>Joined August 2022</span>
+          <span>{joined}</span>
         </div>
       </div>
 
