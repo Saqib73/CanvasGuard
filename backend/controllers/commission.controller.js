@@ -1,4 +1,4 @@
-import { ArtistProfile } from "../model/ArtistProfile";
+import { ArtistProfile } from "../model/ArtistProfile.js";
 
 ///artists?open=true&style=anime&minFee=50&maxFee=300&sort=fee_low
 export const getArtists = async (req, res) => {
@@ -26,7 +26,10 @@ export const getArtists = async (req, res) => {
     else if (sort === "newest") q = q.sort({ createdAt: -1 });
 
     const artists = await q;
-    res.json(artists);
+    res.json({
+      success: true,
+      artists,
+    });
   } catch (err) {
     next(err);
   }

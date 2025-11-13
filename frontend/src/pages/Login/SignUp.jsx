@@ -50,7 +50,10 @@ export default function SignupForm({ setIsLogin }) {
       console.log("data-->", data);
 
       dispatch(setArtIspending(true));
-      navigate("/setup");
+      if (window.location.pathname !== "/setup") {
+        console.log(window.location.pathname);
+        navigate("/setup");
+      }
       toast.success(data.message, {
         id: toastId,
       });

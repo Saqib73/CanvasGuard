@@ -8,10 +8,13 @@ const api = createApi({
   tagTypes: ["Post", "MyPost", "LikedPosts", "Profile"],
   endpoints: (builder) => ({
     getPosts: builder.query({
-      query: () => ({
-        url: "/posts",
-        credentials: "include",
-      }),
+      query: (params) => {
+        const query = new URLSearchParams(params).toString();
+        return {
+          url: `/posts${query ? `?${query}` : ""}`,
+          credentials: "include",
+        };
+      },
       providesTags: ["Post"],
     }),
     getPost: builder.query({
@@ -19,6 +22,15 @@ const api = createApi({
         url: `/posts/${postId}`,
         credentials: "include",
       }),
+    }),
+    updateProfile: builder.mutation({
+      query: (formData) => ({
+        url: "/user/me",
+        method: "PUT",
+        body: formData,
+        credentials: "include",
+      }),
+      invalidatesTags: ["Post", "Profile"], // 👈 this ensures cache is refreshed
     }),
     getComments: builder.mutation({
       query: (data) => ({
@@ -94,6 +106,15 @@ const api = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
+    createPost: builder.mutation({
+      query: ({ description, isArt }) => ({
+        url: "/posts/createPost",
+        credentials: "include",
+        method: "POST",
+        body: { description, isArt },
+      }),
+      invalidatesTags: ["Post"],
+    }),
   }),
 });
 
@@ -111,4 +132,6 @@ export const {
   useDeletePostMutation,
   useFollowUserMutation,
   useUnFollowUserMutation,
+  useCreatePostMutation,
+  useUpdateProfileMutation,
 } = api;

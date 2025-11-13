@@ -1,11 +1,27 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Composer from "../../components/Composer.jsx";
 import Tweet from "../../components/Tweet.jsx";
 import { useGetPostsQuery } from "../../redux/api/api.js";
 
 export default function Home() {
-  const data = useGetPostsQuery();
   const [active, setActive] = useState("For you");
+
+  const queryParams = useMemo(() => {
+    switch (active) {
+      case "Following":
+        return { following: true };
+      case "Art":
+        return { isArt: true };
+      case "Commissions":
+        return { isArtist: true };
+      default:
+        return {};
+    }
+  }, [active]);
+
+  const data = useGetPostsQuery(queryParams, {
+    refetchOnMountOrArgChange: true,
+  });
 
   return data.isLoading ? (
     <div>loading...</div>

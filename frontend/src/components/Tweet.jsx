@@ -23,8 +23,7 @@ export default function Tweet({ post }) {
   const { user, loader } = useSelector((state) => state.auth);
   // const [isLiked, setIsLiked] = useState(false);
   const isLiked = post.likes.includes(user._id);
-  const [sendLike, { sendLikeData, sendLikeIsLoading, sendLikeisError }] =
-    useSendLikeMutation();
+  const [sendLike, { sendLikeIsLoading }] = useSendLikeMutation();
   const [disLike] = useDisLikeMutation();
   const [isStolen, setIsStolen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -128,7 +127,7 @@ export default function Tweet({ post }) {
         <img
           alt="avatar"
           src={post.author?.profilePic?.url}
-          className="h-10 w-10 rounded-full ring-1 ring-neutral-300 dark:ring-neutral-800"
+          className="h-10 w-10 rounded-full object-cover ring-1 ring-neutral-300 dark:ring-neutral-800"
         />
       </Link>
       <div className="flex-1">
@@ -226,7 +225,7 @@ export default function Tweet({ post }) {
         >
           {post.description}
         </Link>
-        {post.media.url && (
+        {post?.media?.url && (
           <Link
             to={`/post/${post._id}`}
             className="mt-2 block overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-800 shadow-lg shadow-black/30"
@@ -237,13 +236,6 @@ export default function Tweet({ post }) {
                 alt="media"
                 className="max-h-[480px] w-full object-cover"
               />
-              {post.watermarked && (
-                <div className="absolute inset-0 grid place-items-center pointer-events-none">
-                  <div className="text-white/25 text-5xl font-black select-none rotate-[-20deg]">
-                    CANVASGUARD
-                  </div>
-                </div>
-              )}
             </div>
           </Link>
         )}
