@@ -1,31 +1,41 @@
-const uploadFilesToCloudinary = async(files=[]) => {
-    const uploadPromises = files.map((file) => {
-        return new Promise((resolve, reject) => {
-            cloudinary.uploader.upload(
-                getBase64(file),
-                {
-                resource_type: "auto",
-                public_id: uuid()
-            } ,(error, result) => {
-                if(error) {
-                    return reject(error)
-                }
-                resolve(result)
-            })
-        })
-    })
+import { getSockets } from "../lib/getSockets.js";
 
-    try {
-        const results = await Promise.all(uploadPromises)
+export const uploadFilesToCloudinary = async (files = []) => {
+  const uploadPromises = files.map((file) => {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.upload(
+        getBase64(file),
+        {
+          resource_type: "auto",
+          public_id: uuid(),
+        },
+        (error, result) => {
+          if (error) {
+            return reject(error);
+          }
+          resolve(result);
+        }
+      );
+    });
+  });
 
-        const formattedResult = results.map((result) => ({
-            public_id: result.public_id,
-            url: result.secure_url
-        }))
+  try {
+    const results = await Promise.all(uploadPromises);
 
-        return formattedResult
-    } catch (error) {
-        console.log(error)
-        throw new Error("Error uploading files to cloudinary", error)
-    }
-}
+    const formattedResult = results.map((result) => ({
+      public_id: result.public_id,
+      url: result.secure_url,
+    }));
+
+    return formattedResult;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Error uploading files to cloudinary", error);
+  }
+};
+
+export const emitEvent = (req, event, users, data) => {
+  const io = req.app.get("io");
+  const usersSocket = getSockets(users);
+  io.to(usersSocket).emit(event, data);
+};

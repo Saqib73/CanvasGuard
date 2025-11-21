@@ -6,8 +6,9 @@ import { ErrorHandler } from "../utils/ErrorHandler.js";
 import { generateImageHashes } from "../utils/hashUtils.js";
 import { v2 as cloudinary } from "cloudinary";
 import * as fs from "fs/promises";
-// import { fsync } from "fs";
 import path from "path";
+import { emitEvent } from "../utils/features.js";
+import { Notification } from "../model/Notification.js";
 
 // export const upload = async (req, res, next) => {
 //   try {
@@ -216,6 +217,17 @@ export const deletePost = async (req, res, next) => {
     promises.push(Post.findByIdAndDelete(postId));
 
     await Promise.all(promises);
+    const userToWarn = [post.author._id];
+
+    if (isStolen) {
+      const notif = await Notification.create({
+        user: post.author._id,
+        message:
+          "Your post was removed because it contained stolen art. Continued violations may result in a ban.",
+        type: "warning",
+      });
+      emitEvent(req, "warning", userToWarn, notif);
+    }
 
     return res.status(200).json({
       success: true,

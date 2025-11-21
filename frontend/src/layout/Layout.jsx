@@ -5,11 +5,15 @@ import axios from "axios";
 import { userNotExists } from "../redux/reducers/auth";
 import api from "../redux/api/api";
 import toast from "react-hot-toast";
+import { useEffect } from "react";
+import { useSocket } from "../socket";
+import { IoIosNotifications } from "react-icons/io";
 
 export const Layout = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
   const userName = user.userName;
   const dispatch = useDispatch();
+  const socket = useSocket();
   const logoutHandler = async () => {
     try {
       const { data } = await axios.get(
@@ -25,6 +29,18 @@ export const Layout = ({ children }) => {
       toast.error(error.message || "Something went wrong");
     }
   };
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("warning", (data) => {
+      console.log("Warning received:", data);
+      alert(data.message); // or show toast
+    });
+
+    return () => {
+      socket.off("warning");
+    };
+  }, [socket]);
 
   return (
     <div className="min-h-screen text-cg-text relative overflow-hidden transition-colors duration-200">
@@ -95,15 +111,17 @@ export const Layout = ({ children }) => {
             </NavLink>
 
             <NavLink
-              to="/report-art"
+              to="/notifications"
               className={({ isActive }) =>
                 `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-3 text-base transition-colors duration-200 ${
                   isActive ? "font-semibold" : ""
                 }`
               }
             >
-              <span>⚙️</span>
-              <span>Report Art</span>
+              <span>
+                <IoIosNotifications />
+              </span>
+              <span>Notifications</span>
             </NavLink>
           </nav>
           <div className="px-4 pt-12 flex flex-col gap-6">
