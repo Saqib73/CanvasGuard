@@ -15,8 +15,14 @@
 
 # Commissions
 
+- Filter artists based on tags(+ location where they ship)
 - User request someone for commission(click btn)
 - A form is shown with the request details(artstyle, description, deadline, character, any images)
 - The details are sent to the artist(maybe email), have a page for all requests + details
 - If agree to take the commission, open a temporary chat
 - Integrate some payment method(maybe razor pay)
+
+# To Implement
+
+- Customize the watermark
+- Communities

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { dummyArtists } from "./dummyArtist";
+import { Link } from "react-router-dom";
+// import { dummyArtists } from "./dummyArtist";
 
 export default function Commissions() {
-  const [artists, setArtists] = useState(dummyArtists);
+  const [artists, setArtists] = useState();
   console.log(artists);
   const [filters, setFilters] = useState({
     open: "",
@@ -93,7 +94,7 @@ export default function Commissions() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {artists?.map((a) => (
-          <div key={a.id} className="border p-4 rounded shadow">
+          <div key={a._id} className="border p-4 rounded shadow">
             <img
               src={a.user?.profilePic?.url || "/default.png"}
               alt={a.user?.name}
@@ -107,9 +108,11 @@ export default function Commissions() {
                 Open for commissions
               </span>
             )}
-            <button className="mt-2 bg-gray-800 text-white text-sm px-3 py-1 rounded">
-              Request Commission
-            </button>
+            <Link to={`/commissions/${a._id}`}>
+              <button className="mt-2 bg-gray-800 text-white text-sm px-3 py-1 rounded">
+                Request Commission
+              </button>
+            </Link>
           </div>
         ))}
       </div>

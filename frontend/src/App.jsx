@@ -25,6 +25,7 @@ import Report from "./pages/Report_Art_Theft/Report.jsx";
 import ArtistSetupForm from "./pages/Login/ArtistSetup.jsx";
 import { SocketProvider } from "./socket.jsx";
 import { Notification } from "./pages/Notification.jsx";
+import CommissionDetails from "./pages/CommissionDetails.jsx";
 
 export default function App() {
   const { user, loader, artistSetupPending } = useSelector(
@@ -111,6 +112,10 @@ export default function App() {
                     <Route path="/prompts" element={<PromptsPage />} />
                     <Route path="/communities" element={<Communities />} />
                     <Route path="/commissions" element={<Commissions />} />
+                    <Route
+                      path="/commissions/:id"
+                      element={<CommissionDetails />}
+                    />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/edit-profile" element={<EditProfile />} />
                     <Route path="/artist/:userName" element={<Profile />} />

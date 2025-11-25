@@ -1,7 +1,10 @@
+import { uploadFilesToCloudinary } from "../features/uploadFilesToCoudinary.js";
 import { ArtistProfile } from "../model/ArtistProfile.js";
+import { CommissionDetail } from "../model/CommissionDetail.js";
+import { ErrorHandler } from "../utils/ErrorHandler.js";
 
 ///artists?open=true&style=anime&minFee=50&maxFee=300&sort=fee_low
-export const getArtists = async (req, res) => {
+export const getArtists = async (req, res, next) => {
   try {
     const { open, style, minFee, maxFee, sort } = req.query;
 
@@ -32,5 +35,88 @@ export const getArtists = async (req, res) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+export const sendCommissionRequest = async (req, res, next) => {
+  try {
+    const {
+      deadline,
+      artStyle,
+      price,
+      description,
+      shippingDetails,
+      artistId,
+    } = req.body;
+    const customerId = req.user._id;
+    const files = req.files || [];
+
+    let refrences;
+
+    if (files.length > 0) {
+      const result = await uploadFilesToCloudinary(files);
+      refrences = {
+        public_id: result[0].public_id,
+        url: result[0].url,
+      };
+    }
+
+    if (!deadline)
+      return next(new ErrorHandler("Please give an idea about deadline", 400));
+    if (
+      !shippingDetails.country ||
+      !shippingDetails.state ||
+      !shippingDetails.postal
+    )
+      return next(
+        new ErrorHandler("Please provide necessary shipping details", 400)
+      );
+
+    const request = new CommissionDetail({
+      deadline,
+      artStyle,
+      price,
+      description,
+      shippingDetails,
+      artistId,
+      customerId,
+      refrences,
+      isConfirmed: false,
+    });
+
+    await request.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Request sent successfully",
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getAllCommissionRequests = async (req, res, next) => {
+  try {
+    const { artist } = req.query;
+
+    if (artist) {
+      const commissionReqs = await CommissionDetail.find({
+        artistId: req.user._id,
+      }).populate("customerId", "name userName profilePic");
+
+      return res.status(200).json({
+        success: true,
+        commissionReqs,
+      });
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const acceptCommissionRequest = async (req, res, next) => {
+  try {
+  } catch (error) {
+    return next(error);
   }
 };
