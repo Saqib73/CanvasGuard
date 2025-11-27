@@ -123,6 +123,34 @@ export const Layout = ({ children }) => {
               </span>
               <span>Notifications</span>
             </NavLink>
+
+            <NavLink
+              to="/commissionRequests"
+              className={({ isActive }) =>
+                `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-3 text-base transition-colors duration-200 ${
+                  isActive ? "font-semibold" : ""
+                }`
+              }
+            >
+              <span>
+                <IoIosNotifications />
+              </span>
+              <span>Comm Reqs</span>
+            </NavLink>
+
+            <NavLink
+              to="/createCommunity"
+              className={({ isActive }) =>
+                `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-3 text-base transition-colors duration-200 ${
+                  isActive ? "font-semibold" : ""
+                }`
+              }
+            >
+              <span>
+                <IoIosNotifications />
+              </span>
+              <span>Create your Comm</span>
+            </NavLink>
           </nav>
           <div className="px-4 pt-12 flex flex-col gap-6">
             <NavLink

@@ -26,6 +26,8 @@ import ArtistSetupForm from "./pages/Login/ArtistSetup.jsx";
 import { SocketProvider } from "./socket.jsx";
 import { Notification } from "./pages/Notification.jsx";
 import CommissionDetails from "./pages/CommissionDetails.jsx";
+import CommissionRequests from "./pages/CommissionRequests.jsx";
+import CreateCommunity from "./pages/CreateCommunity.jsx";
 
 export default function App() {
   const { user, loader, artistSetupPending } = useSelector(
@@ -122,6 +124,14 @@ export default function App() {
                     <Route path="/report-art" element={<Report />} />
                     <Route path="/setup" element={<ArtistSetupForm />} />
                     <Route path="/notifications" element={<Notification />} />
+                    <Route
+                      path="/commissionRequests"
+                      element={<CommissionRequests />}
+                    />
+                    <Route
+                      path="/createCommunity"
+                      element={<CreateCommunity />}
+                    />
                   </Routes>
                   {/* <Toaster/> */}
                 </Layout>

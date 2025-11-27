@@ -1,11 +1,78 @@
 import { RxAvatar } from "react-icons/rx";
 import { MdPhoto } from "react-icons/md";
 import { FaChevronDown } from "react-icons/fa6";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
+import axios from "axios";
 
 export default function Example() {
+  const today = new Date().toISOString().split("T")[0];
+  const [deadline, setDealine] = useState(today);
+  const [description, setDescription] = useState("");
+  const [country, setCountry] = useState();
+  const [city, setCity] = useState("");
+  const [postal, setPostal] = useState(Number);
+  const [state, setState] = useState("");
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState("");
+
+  const fileInputRef = useRef("");
+
+  const navigate = useNavigate();
+
+  const onFileChange = (e) => {
+    const f = e.target.files?.[0];
+    setFile(f || null);
+    if (f) {
+      const url = URL.createObjectURL(f);
+      setPreview(url);
+    } else {
+      setPreview("");
+    }
+    console.log("file->", f);
+  };
+
+  const sendCommissionrequest = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("deadline", deadline);
+      formData.append("description", description);
+      formData.append("files", file);
+      const shippingDetails = {
+        country,
+        state,
+        postal,
+        city,
+      };
+      console.log(shippingDetails);
+      formData.append("shippingDetails", JSON.stringify(shippingDetails));
+
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_SERVER}/api/v1/commissions/requestCommission`,
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log(data);
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // useEffect(() => {
+  //   sendCommissionrequest()
+  // }, []);
+
   return (
-    <form className="overflow-scroll w-full h-full p-6">
+    <form
+      className="overflow-scroll w-full h-full p-6"
+      action={sendCommissionrequest}
+    >
       <div className="space-y-12">
         <div className="border-b border-white/10 pb-12">
           {/* <h2 className="text-base/7 font-semibold text-white">Profile</h2>
@@ -28,7 +95,9 @@ export default function Example() {
                     id="deadline"
                     name="deadline"
                     type="date"
-                    placeholder="janesmith"
+                    value={deadline}
+                    onChange={(e) => setDealine(e.target.value)}
+                    // placeholder="janesmith"
                     className="block min-w-0 grow bg-transparent py-1.5 pr-3 pl-1 text-base text-white placeholder:text-gray-500 focus:outline-none sm:text-sm/6"
                   />
                 </div>
@@ -47,8 +116,9 @@ export default function Example() {
                   id="about"
                   name="about"
                   rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
-                  defaultValue={""}
                 />
               </div>
               <p className="mt-3 text-sm/6 text-gray-400">
@@ -100,6 +170,8 @@ export default function Example() {
                         id="file-upload"
                         name="file-upload"
                         type="file"
+                        onChange={onFileChange}
+                        ref={fileInputRef}
                         className="sr-only"
                       />
                     </label>
@@ -113,6 +185,23 @@ export default function Example() {
             </div>
           </div>
         </div>
+
+        {preview && (
+          <div className="relative">
+            <img
+              src={preview}
+              alt="preview"
+              className="max-h-60 rounded-lg shadow-xl shadow-black/40"
+            />
+            {/* {watermarked && (
+              <div className="absolute inset-0 grid place-items-center pointer-events-none">
+                <div className="text-white/30 text-4xl font-black select-none rotate-[-20deg]">
+                  CANVASGUARD
+                </div>
+              </div>
+            )} */}
+          </div>
+        )}
 
         <div className="border-b border-white/10 pb-12">
           <h2 className="text-base/7 font-semibold text-white">
@@ -134,12 +223,14 @@ export default function Example() {
                 <select
                   id="country"
                   name="country"
-                  autoComplete="country-name"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  // autoComplete="country-name"
                   className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white/5 py-1.5 pr-8 pl-3 text-base text-white outline-1 -outline-offset-1 outline-white/10 *:bg-gray-800 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                 >
-                  <option>United States</option>
-                  <option>Canada</option>
-                  <option>Mexico</option>
+                  <option value={"United States"}>United States</option>
+                  <option value={"Canada"}>Canada</option>
+                  <option value={"Mexico"}>Mexico</option>
                 </select>
                 <FaChevronDown
                   aria-hidden="true"
@@ -178,6 +269,8 @@ export default function Example() {
                   id="city"
                   name="city"
                   type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
                   autoComplete="address-level2"
                   className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                 />
@@ -196,6 +289,8 @@ export default function Example() {
                   id="region"
                   name="region"
                   type="text"
+                  value={state}
+                  onChange={(e) => setState(e.target.value)}
                   autoComplete="address-level1"
                   className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                 />
@@ -214,6 +309,8 @@ export default function Example() {
                   id="postal-code"
                   name="postal-code"
                   type="text"
+                  value={postal}
+                  onChange={(e) => setPostal(e.target.value)}
                   autoComplete="postal-code"
                   className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
                 />

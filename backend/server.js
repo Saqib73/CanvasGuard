@@ -7,6 +7,7 @@ import user from "./routes/user.route.js";
 import comment from "./routes/comment.route.js";
 import post from "./routes/post.route.js";
 import commission from "./routes/commission.js";
+import community from "./routes/community.route.js";
 import cookies from "cookie-parser";
 import cloudinary from "cloudinary";
 import cors from "cors";
@@ -50,6 +51,7 @@ app.use("/api/v1/user", user);
 app.use("/api/v1/comment", comment);
 app.use("/api/v1/posts", post);
 app.use("/api/v1/commissions", commission);
+app.use("/api/v1/community", community);
 
 io.use((socket, next) => {
   cookieParser()(socket.request, socket.request.res, async (err) => {
@@ -59,7 +61,7 @@ io.use((socket, next) => {
 
 io.on("connection", (socket) => {
   const user = socket.user;
-  console.log(`${user.name}user connected with -->`, socket.id);
+  // console.log(`${user.name}user connected with -->`, socket.id);
   userSocketIds.set(user._id.toString(), socket.id);
 
   socket.on("notification", (data) => {

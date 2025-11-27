@@ -50,6 +50,9 @@ export const sendCommissionRequest = async (req, res, next) => {
     } = req.body;
     const customerId = req.user._id;
     const files = req.files || [];
+    console.log("inside func");
+
+    const parsedShippingDetails = JSON.parse(shippingDetails);
 
     let refrences;
 
@@ -61,12 +64,14 @@ export const sendCommissionRequest = async (req, res, next) => {
       };
     }
 
+    console.log(parsedShippingDetails);
+
     if (!deadline)
       return next(new ErrorHandler("Please give an idea about deadline", 400));
     if (
-      !shippingDetails.country ||
-      !shippingDetails.state ||
-      !shippingDetails.postal
+      !parsedShippingDetails.country ||
+      !parsedShippingDetails.state ||
+      !parsedShippingDetails.postal
     )
       return next(
         new ErrorHandler("Please provide necessary shipping details", 400)
@@ -77,13 +82,14 @@ export const sendCommissionRequest = async (req, res, next) => {
       artStyle,
       price,
       description,
-      shippingDetails,
+      shippingDetails: parsedShippingDetails,
       artistId,
       customerId,
       refrences,
       isConfirmed: false,
     });
 
+    console.log("saving request");
     await request.save();
 
     return res.status(200).json({
@@ -91,6 +97,7 @@ export const sendCommissionRequest = async (req, res, next) => {
       message: "Request sent successfully",
     });
   } catch (error) {
+    console.log(error);
     return next(error);
   }
 };
@@ -116,6 +123,14 @@ export const getAllCommissionRequests = async (req, res, next) => {
 
 export const acceptCommissionRequest = async (req, res, next) => {
   try {
+    const { id } = req.params;
+    const { accept } = req.body;
+    const comm = await CommissionDetail.findById(id);
+
+    comm.isConfirmed = accept;
+    await comm.save();
+
+    //create a temp chat
   } catch (error) {
     return next(error);
   }

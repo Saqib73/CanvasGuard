@@ -85,7 +85,7 @@ export const upload = async (req, res, next) => {
 
 export const createPost = async (req, res, next) => {
   try {
-    const { description, public_id, isArt } = req.body;
+    const { description, public_id, isArt, community } = req.body;
     const userId = req.user._id;
 
     // Ensure at least one of description or media is present
@@ -105,6 +105,7 @@ export const createPost = async (req, res, next) => {
       description: description || "",
       ...(media && { media: media._id }),
       isArt,
+      community,
     });
 
     await post.save();

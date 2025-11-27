@@ -37,6 +37,10 @@ const postSchema = new Schema(
     createdAt: {
       type: Date,
     },
+    community: {
+      type: Schema.Types.ObjectId,
+      ref: "Community",
+    },
   },
   { timestamps: true }
 );

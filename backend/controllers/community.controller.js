@@ -1,13 +1,26 @@
+import { uploadFilesToCloudinary } from "../features/uploadFilesToCoudinary.js";
 import { Community } from "../model/Community.js";
+import { Post } from "../model/Post.js";
 import { User } from "../model/User.js";
 import { ErrorHandler } from "../utils/ErrorHandler.js";
 
 // Create a new community
 export const createCommunity = async (req, res, next) => {
   try {
-    const { name, coverArt, rules, description } = req.body;
+    const { name, rules, description } = req.body;
+
+    const file = req.files;
+    console.log("file-->", file);
+
+    if (!file) return new ErrorHandler("please upload profile", 403);
+    const result = await uploadFilesToCloudinary(file);
+
+    const coverArt = {
+      public_id: result[0].public_id,
+      url: result[0].url,
+    };
     const createdBy = req.user._id;
-    const user = User.findById(createdBy);
+    const user = await User.findById(createdBy);
 
     const community = new Community({
       name,
@@ -119,4 +132,62 @@ export const getCommunity = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+export const getMyCommunities = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const communities = await Community.find({ members: userId })
+      .populate("createdBy", "name userName profilePic")
+      .populate({
+        path: "members",
+        select: "name userName profilePic",
+      })
+      .populate({
+        path: "posts",
+        populate: [
+          { path: "author", select: "name userName profilePic" },
+          { path: "media" }, // media contains url, public_id
+          {
+            path: "comments",
+            populate: { path: "author", select: "name userName profilePic" },
+          },
+        ],
+      });
+
+    res.status(200).json({ success: true, communities });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const getHomeFeed = async (req, res) => {
+  const userId = req.user._id;
+
+  const userCommunities = await Community.find({
+    members: userId,
+  }).select("_id");
+
+  const posts = await Post.find({
+    community: { $in: userCommunities }, // only posts inside joined communities
+  })
+    .sort({ createdAt: -1 })
+    .populate("author", "userName name profilePic")
+    .populate("community", "name coverArt")
+    .populate("media");
+
+  res.json({ success: true, posts });
+};
+
+export const getExploreFeed = async (req, res) => {
+  const posts = await Post.find({
+    community: { $ne: null }, // only posts that belong to communities
+  })
+    .sort({ createdAt: -1 })
+    .populate("author", "userName name profilePic")
+    .populate("community", "name coverArt")
+    .populate("media");
+
+  res.json({ success: true, posts });
 };
