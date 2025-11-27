@@ -19,19 +19,26 @@
 
 FROM node:20-slim
 
+# Install Java and utilities needed
 RUN apt-get update && apt-get install -y default-jre wget unzip && apt-get clean
 
 WORKDIR /app
 
-# Download zip release
-RUN wget https://github.com/syvaidya/openstego/releases/download/v0.8.6/openstego-0.8.6.zip -O openstego.zip \
+# Download and extract OpenStego
+RUN wget --trust-server-names \
+    https://sourceforge.net/projects/openstego/files/openstego-0.8.6.zip/download \
+    -O openstego.zip \
     && unzip openstego.zip -d /app/openstego \
     && rm openstego.zip
 
-# Copy backend files
+# Copy backend package files first
 COPY package*.json ./
 RUN npm install --production
+
+# Copy backend code
 COPY . .
 
 EXPOSE 5000
+
 CMD ["npm", "start"]
+
