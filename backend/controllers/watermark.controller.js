@@ -82,7 +82,12 @@ export const applyWatermark = async (req, res, next) => {
     //   "lib",
     //   "openstego.jar"
     // );
-    const openstegoJar = path.join(process.cwd(), "openstego.jar");
+    const openstegoJar = path.join(
+      process.cwd(),
+      "openstego",
+      "lib",
+      "openstego.jar"
+    );
 
     const cmd = `java -jar "${openstegoJar}" embed -mf "${watermarkPath}" -cf "${origPath}" -sf "${stegoPath}" -p ""`;
     await execAsync(cmd);
