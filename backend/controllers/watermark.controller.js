@@ -75,13 +75,15 @@ export const applyWatermark = async (req, res, next) => {
       fs.writeFile(watermarkPath, watermarkContent),
     ]);
 
-    const openstegoJar = path.join(
-      process.cwd(),
-      "openstego-0.8.6",
-      "openstego-0.8.6",
-      "lib",
-      "openstego.jar"
-    );
+    // const openstegoJar = path.join(
+    //   process.cwd(),
+    //   "openstego-0.8.6",
+    //   "openstego-0.8.6",
+    //   "lib",
+    //   "openstego.jar"
+    // );
+    const openstegoJar = path.join(process.cwd(), "openstego.jar");
+
     const cmd = `java -jar "${openstegoJar}" embed -mf "${watermarkPath}" -cf "${origPath}" -sf "${stegoPath}" -p ""`;
     await execAsync(cmd);
 
