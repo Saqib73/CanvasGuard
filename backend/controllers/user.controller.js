@@ -1,4 +1,5 @@
 import { uploadFilesToCloudinary } from "../features/uploadFilesToCoudinary.js";
+import { Notification } from "../model/Notification.js";
 import { User } from "../model/User.js";
 import { ErrorHandler } from "../utils/ErrorHandler.js";
 
@@ -182,6 +183,22 @@ export const getAllLikedPosts = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       allLikedPosts,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllNotifications = async (req, res, next) => {
+  try {
+    const notifications = await Notification.find({ user: req.user._id }).sort({
+      createdAt: -1,
+    });
+    console.log("Inside notifications", notifications);
+
+    return res.status(200).json({
+      success: true,
+      notifications,
     });
   } catch (error) {
     next(error);

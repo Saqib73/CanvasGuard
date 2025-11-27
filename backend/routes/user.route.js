@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/auth.middleware.js";
 import {
   followUser,
   getAllLikedPosts,
+  getAllNotifications,
   getMyProfile,
   getUserProfile,
   unfollowUser,
@@ -16,6 +17,7 @@ const router = express.Router();
 router.use(authMiddleware);
 router.get("/me", getMyProfile);
 router.get("/getLikedPosts", getAllLikedPosts);
+router.get("/notification", getAllNotifications);
 router.get("/:userName", getUserProfile); // Show User Profile (my/others)
 router.post("/follow", followUser);
 router.post("/unfollow", unfollowUser);

@@ -9,8 +9,6 @@ export default function PostDetail() {
   const { postId } = useParams();
   console.log(postId);
   const { data, isLoading } = useGetPostQuery({ postId });
-  // const { posts, users, addComment } = useStore();
-  // const post = posts.find((p) => p.id === id);
   const [comment, setComment] = useState("");
 
   const addComment = async (e) => {
@@ -27,7 +25,6 @@ export default function PostDetail() {
           withCredentials: true,
         }
       );
-      console.log("comment->", data);
       toast.success(data.message, {
         id: toastId,
       });
@@ -80,8 +77,8 @@ export default function PostDetail() {
             >
               <img
                 alt="avatar"
-                src={r.author.profilePic}
-                className="h-9 w-9 rounded-full ring-1 ring-neutral-800"
+                src={r.author.profilePic.url}
+                className="h-9 w-9 rounded-full object-cover ring-1 ring-neutral-800"
               />
               <div>
                 <div className="text-sm text-neutral-300">

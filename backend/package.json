@@ -11,6 +11,7 @@
     "exiftool-vendored": "^31.2.0",
     "express": "^5.1.0",
     "hamming-distance": "^1.0.0",
+    "http": "^0.0.1-security",
     "imghash": "^1.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0",
@@ -18,6 +19,7 @@
     "multer": "^2.0.2",
     "nodemon": "^3.1.10",
     "sharp": "^0.34.4",
+    "socket.io": "^4.8.1",
     "uuid": "^13.0.0"
   },
   "name": "backend",

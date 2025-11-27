@@ -1,9 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function CreatePost() {
+  const [communityId, setCommunityId] = useState("");
+  const [myCommunities, setMyCommunities] = useState([]);
   const [text, setText] = useState("");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
@@ -108,6 +110,7 @@ export default function CreatePost() {
           public_id: publicid,
           description: text,
           isArt,
+          community: communityId,
         },
         {
           withCredentials: true,
@@ -128,11 +131,62 @@ export default function CreatePost() {
     }
   };
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_SERVER}/api/v1/community/my`,
+          { withCredentials: true }
+        );
+        setMyCommunities(data.communities || []);
+      } catch (err) {
+        console.log(err);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    console.log(communityId);
+  }, [communityId]);
+
   return (
     <div>
       <div className="sticky top-0 backdrop-blur bg-black/60 border-b border-neutral-800 p-3 font-semibold">
         Post
       </div>
+      {/* SELECT COMMUNITY TO POST IN */}
+      <div className="border border-neutral-700 rounded-lg p-3">
+        <label className="font-semibold text-sm mb-2 block">Post To:</label>
+
+        {/* Public feed option */}
+        <label className="flex items-center gap-2 text-sm mb-2">
+          <input
+            type="radio"
+            name="postTo"
+            checked={communityId === ""}
+            onChange={() => setCommunityId("")}
+          />
+          Everyone (Public)
+        </label>
+
+        {/* Only show if user has communities */}
+        {myCommunities.length > 0 && (
+          <div className="space-y-2">
+            {myCommunities.map((comm) => (
+              <label key={comm._id} className="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name="postTo"
+                  checked={communityId === comm._id}
+                  onChange={() => setCommunityId(comm._id)}
+                />
+                {comm.name}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="p-4 space-y-4 min-h-[50vh] overflow-scroll">
         <textarea
           value={text}

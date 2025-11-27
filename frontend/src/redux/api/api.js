@@ -115,6 +115,12 @@ const api = createApi({
       }),
       invalidatesTags: ["Post"],
     }),
+    getNotifications: builder.query({
+      query: () => ({
+        url: "/user/notification",
+        credentials: "include",
+      }),
+    }),
   }),
 });
 
@@ -134,4 +140,5 @@ export const {
   useUnFollowUserMutation,
   useCreatePostMutation,
   useUpdateProfileMutation,
+  useGetNotificationsQuery,
 } = api;

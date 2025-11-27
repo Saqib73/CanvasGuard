@@ -23,6 +23,11 @@ import axios from "axios";
 import { Toaster } from "react-hot-toast";
 import Report from "./pages/Report_Art_Theft/Report.jsx";
 import ArtistSetupForm from "./pages/Login/ArtistSetup.jsx";
+import { SocketProvider } from "./socket.jsx";
+import { Notification } from "./pages/Notification.jsx";
+import CommissionDetails from "./pages/CommissionDetails.jsx";
+import CommissionRequests from "./pages/CommissionRequests.jsx";
+import CreateCommunity from "./pages/CreateCommunity.jsx";
 
 export default function App() {
   const { user, loader, artistSetupPending } = useSelector(
@@ -67,65 +72,80 @@ export default function App() {
   // if (user && artistPendingSetup) return <Navigate to="/setup" />;
 
   return (
-    <StoreProvider>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            user ? (
-              artistSetupPending ? (
-                <Navigate to="/setup" />
+    <SocketProvider>
+      <StoreProvider>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              user ? (
+                artistSetupPending ? (
+                  <Navigate to="/setup" />
+                ) : (
+                  <Navigate to="/" />
+                )
               ) : (
-                <Navigate to="/" />
+                <Login />
               )
-            ) : (
-              <Login />
-            )
-          }
-        />
+            }
+          />
 
-        <Route
-          path="/setup"
-          element={
-            artistSetupPending ? (
-              <ArtistSetupForm />
-            ) : (
-              <Navigate to={"/login"} />
-            )
-          }
-        />
-        <Route
-          path="/*"
-          element={
-            user && !artistSetupPending ? (
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/explore" element={<ExplorePage />} />
-                  <Route path="/post" element={<PostPage />} />
-                  <Route path="/post/:postId" element={<PostDetail />} />
-                  <Route path="/gallery" element={<Gallery />} />
-                  <Route path="/prompts" element={<PromptsPage />} />
-                  <Route path="/communities" element={<Communities />} />
-                  <Route path="/commissions" element={<Commissions />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/edit-profile" element={<EditProfile />} />
-                  <Route path="/artist/:userName" element={<Profile />} />
-                  <Route path="/report-art" element={<Report />} />
-                  <Route path="/setup" element={<ArtistSetupForm />} />
-                </Routes>
-                {/* <Toaster/> */}
-              </Layout>
-            ) : artistSetupPending ? (
-              <Navigate to={"/setup"} />
-            ) : (
-              <Navigate to={"/login"} />
-            )
-          }
-        />
-      </Routes>
-      <Toaster />
-    </StoreProvider>
+          <Route
+            path="/setup"
+            element={
+              artistSetupPending ? (
+                <ArtistSetupForm />
+              ) : (
+                <Navigate to={"/login"} />
+              )
+            }
+          />
+          <Route
+            path="/*"
+            element={
+              user && !artistSetupPending ? (
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/explore" element={<ExplorePage />} />
+                    <Route path="/post" element={<PostPage />} />
+                    <Route path="/post/:postId" element={<PostDetail />} />
+                    <Route path="/gallery" element={<Gallery />} />
+                    <Route path="/prompts" element={<PromptsPage />} />
+                    <Route path="/communities" element={<Communities />} />
+                    <Route path="/commissions" element={<Commissions />} />
+                    <Route
+                      path="/commissions/:id"
+                      element={<CommissionDetails />}
+                    />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/edit-profile" element={<EditProfile />} />
+                    <Route path="/artist/:userName" element={<Profile />} />
+                    <Route path="/report-art" element={<Report />} />
+                    <Route path="/setup" element={<ArtistSetupForm />} />
+                    <Route path="/notifications" element={<Notification />} />
+                    <Route
+                      path="/commissionRequests"
+                      element={<CommissionRequests />}
+                    />
+                    <Route
+                      path="/createCommunity"
+                      element={<CreateCommunity />}
+                    />
+                  </Routes>
+                  {/* <Toaster/> */}
+                </Layout>
+              ) : artistSetupPending ? (
+                <Navigate to={"/setup"} />
+              ) : (
+                <Navigate to={"/login"} />
+              )
+            }
+          />
+        </Routes>
+        <Toaster />
+      </StoreProvider>
+    </SocketProvider>
   );
 }
 
