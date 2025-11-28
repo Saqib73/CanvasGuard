@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 
 export default function Commissions() {
   const [artists, setArtists] = useState();
-  console.log(artists);
   const [filters, setFilters] = useState({
     open: "",
     style: "",
@@ -16,7 +15,6 @@ export default function Commissions() {
 
   const fetchArtists = async () => {
     const params = new URLSearchParams();
-    console.log(params);
     for (const key in filters) {
       if (filters[key]) params.append(key, filters[key]);
     }

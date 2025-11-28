@@ -84,7 +84,6 @@ export default function CreatePost() {
       toast.success(data.message, {
         id: toastId,
       });
-      console.log("data after watermark-->", data);
       setFile(data.url);
       setPublicid(data.public_id);
       seturl(data.url);
@@ -119,7 +118,6 @@ export default function CreatePost() {
       toast.success(data.message, {
         id: toastId,
       });
-      console.log(data);
       navigate("/");
     } catch (error) {
       console.error(error);
@@ -144,10 +142,6 @@ export default function CreatePost() {
       }
     })();
   }, []);
-
-  useEffect(() => {
-    console.log(communityId);
-  }, [communityId]);
 
   return (
     <div>

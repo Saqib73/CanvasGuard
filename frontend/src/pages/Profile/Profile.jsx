@@ -24,7 +24,6 @@ export default function Profile() {
   const { data, isLoading: likedPostsIsLoading } = useGetAllLikedPostsQuery();
   const [followUser] = useFollowUserMutation();
   const [UnfollowUser] = useUnFollowUserMutation();
-  // console.log(userPosts);
   const isOwnProfile = authUser.userName === userName;
   const [isFollowing, setIsFollowing] = useState(false);
 
@@ -37,7 +36,6 @@ export default function Profile() {
       toast.success(data?.message, {
         id: toastId,
       });
-      console.log(data);
       setIsFollowing(true);
     } catch (error) {
       console.log(error);
@@ -54,7 +52,6 @@ export default function Profile() {
       toast.success(data?.message, {
         id: toastId,
       });
-      console.log(data);
       setIsFollowing(false);
       setConfirmUnfollow(false);
     } catch (error) {
@@ -70,18 +67,10 @@ export default function Profile() {
       const isFollowed = user.user.followers.some(
         (f) => f._id === authUser._id
       );
-      console.log(isFollowed);
       setIsFollowing(isFollowed);
     }
     setJoined(formattedDate(user?.user));
   }, [user?.user.followers, authUser, user]);
-
-  useEffect(() => {
-    console.log("user-->", user);
-    // console.log(data);
-    // console.log(isError);
-    // console.log(data);
-  }, [user]);
 
   return profileIsLoading ? (
     <div>Loading...</div>

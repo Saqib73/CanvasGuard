@@ -29,7 +29,6 @@ export default function Example() {
     } else {
       setPreview("");
     }
-    console.log("file->", f);
   };
 
   const sendCommissionrequest = async () => {
@@ -44,10 +43,9 @@ export default function Example() {
         postal,
         city,
       };
-      console.log(shippingDetails);
       formData.append("shippingDetails", JSON.stringify(shippingDetails));
 
-      const { data } = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_SERVER}/api/v1/commissions/requestCommission`,
         formData,
         {
@@ -57,7 +55,6 @@ export default function Example() {
           },
         }
       );
-      console.log(data);
       navigate("/");
     } catch (error) {
       console.log(error);

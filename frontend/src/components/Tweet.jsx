@@ -30,9 +30,7 @@ export default function Tweet({ post }) {
   const [removing, setRemoving] = useState(false);
   const [open, setOpen] = useState(false);
 
-  console.log(post.author.userName, user.userName);
   const isPostAuthor = post.author.userName == user.userName;
-  console.log("is author-->", isPostAuthor);
 
   const menuRef = useRef(null);
 
@@ -67,7 +65,6 @@ export default function Tweet({ post }) {
       toast.success(data.message, {
         id: toastId,
       });
-      console.log(data);
       if (data.isStolen) {
         setIsStolen(true);
       }
@@ -81,10 +78,6 @@ export default function Tweet({ post }) {
     }
   };
 
-  useEffect(() => {
-    console.log(open);
-  }, [open]);
-
   const handleRemove = async () => {
     setRemoving(true);
     const toastId = toast.loading("Removing Post");
@@ -93,11 +86,9 @@ export default function Tweet({ post }) {
         postId: post._id,
         isStolen,
       }).unwrap();
-      console.log(res);
       toast.success(res?.message, {
         id: toastId,
       });
-      // console.log(data);
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Something wen wrong", {

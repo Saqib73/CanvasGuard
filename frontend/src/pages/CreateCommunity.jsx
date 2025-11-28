@@ -29,7 +29,7 @@ const CreateCommunity = () => {
     formData.append("files", coverArt);
 
     try {
-      const { data } = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_SERVER}/api/v1/community/create`,
         formData,
         {
@@ -39,7 +39,6 @@ const CreateCommunity = () => {
           },
         }
       );
-      console.log(data);
       alert("Community created!");
     } catch (err) {
       console.log(err);

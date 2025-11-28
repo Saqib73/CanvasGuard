@@ -7,7 +7,6 @@ import toast from "react-hot-toast";
 
 export default function PostDetail() {
   const { postId } = useParams();
-  console.log(postId);
   const { data, isLoading } = useGetPostQuery({ postId });
   const [comment, setComment] = useState("");
 
@@ -37,9 +36,6 @@ export default function PostDetail() {
       setComment("");
     }
   };
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
 
   return isLoading ? (
     <div>Loading...</div>

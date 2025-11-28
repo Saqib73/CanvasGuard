@@ -55,7 +55,6 @@ export default function EditProfile() {
       // );
 
       const res = await updateProfile(fd).unwrap();
-      console.log("Profile updated:", res);
       toast.success("profile updated", {
         id: toastId,
       });
