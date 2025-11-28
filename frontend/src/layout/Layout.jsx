@@ -98,7 +98,7 @@ export const Layout = ({ children }) => {
               <span>Commissions</span>
             </NavLink>
 
-            <NavLink
+            {/* <NavLink
               to="/settings"
               className={({ isActive }) =>
                 `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-3 text-base transition-colors duration-200 ${
@@ -108,7 +108,7 @@ export const Layout = ({ children }) => {
             >
               <span>⚙️</span>
               <span>Settings</span>
-            </NavLink>
+            </NavLink> */}
 
             <NavLink
               to="/notifications"
@@ -152,7 +152,7 @@ export const Layout = ({ children }) => {
               <span>Create your Comm</span>
             </NavLink>
           </nav>
-          <div className="px-4 pt-12 flex flex-col gap-6">
+          <div className="px-4 pt-8 flex flex-col gap-6">
             <NavLink
               to="/post"
               className="block text-center px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-2xl shadow-lg shadow-yellow-500/20 text-base"

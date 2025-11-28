@@ -47,8 +47,6 @@ export default function SignupForm({ setIsLogin }) {
           withCredentials: true,
         }
       );
-      console.log("data-->", data);
-
       dispatch(setArtIspending(true));
       if (window.location.pathname !== "/setup") {
         console.log(window.location.pathname);
@@ -66,10 +64,6 @@ export default function SignupForm({ setIsLogin }) {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    console.log(form);
-  }, [form]);
 
   return (
     <div className="flex min-h-full flex-col justify-center px-4 py-4 lg:px-8 overflow-x-scroll">

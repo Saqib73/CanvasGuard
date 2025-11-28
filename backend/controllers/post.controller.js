@@ -105,7 +105,7 @@ export const createPost = async (req, res, next) => {
       description: description || "",
       ...(media && { media: media._id }),
       isArt,
-      community,
+      community: community == "" ? null : community,
     });
 
     await post.save();

@@ -37,19 +37,11 @@ export default function Login() {
         },
         config
       );
-      console.log(data);
       toast.success("Logged in", {
         id: toastId,
       });
 
       if (data.user.isArtist && !data.user.artistProfile) {
-        console.log("setting artist is pending");
-        // dispatch(
-        //   userExists({
-        //     user: data,
-        //     artistPendingSetup: data.isArtist && !data.artistProfile,
-        //   })
-        // );
         navigate("/setup");
       } else {
         dispatch(userExists(data));

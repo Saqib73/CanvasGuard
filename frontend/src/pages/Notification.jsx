@@ -14,10 +14,6 @@ export const Notification = () => {
     return () => socket.off("warning");
   }, [socket]);
 
-  useEffect(() => {
-    console.log("data-->", data);
-  }, [data]);
-
   if (isLoading) return <div>Loading notifications...</div>;
 
   const allNotifications = [...liveNotifications, ...data.notifications];

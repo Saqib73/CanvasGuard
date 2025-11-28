@@ -240,6 +240,7 @@
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "";
@@ -258,6 +259,8 @@ export default function CommunitiesPage() {
   const [exploreFeed, setExploreFeed] = useState([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(null);
+
+  const navigate = useNavigate();
 
   const { user } = useSelector((state) => state.auth);
 
@@ -292,9 +295,6 @@ export default function CommunitiesPage() {
     loadData();
   }, []);
 
-  useEffect(() => {
-    console.log(myCommunities);
-  }, [myCommunities]);
   const displayedFeed = activeTab === "home" ? homeFeed : exploreFeed;
 
   const stripCommunities = useMemo(() => {
@@ -361,9 +361,7 @@ export default function CommunitiesPage() {
   };
 
   const handleCreateCommunity = () => {
-    // Navigate to your create community page
-    // e.g. navigate("/communities/create");
-    console.log("Go to create community page");
+    navigate("/createCommunity");
   };
 
   return (

@@ -33,7 +33,6 @@ export default function App() {
   const { user, loader, artistSetupPending } = useSelector(
     (state) => state.auth
   );
-  console.log(user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -44,11 +43,8 @@ export default function App() {
         withCredentials: true,
       })
       .then(({ data }) => {
-        console.log(data);
-        console.log(data.artistProfile);
         // dispatch(userExists(data));
         if (data.isArtist && !data.artistProfile) {
-          console.log("setting artist is pending");
           // dispatch(
           //   userExists({
           //     user: data,
@@ -57,11 +53,9 @@ export default function App() {
           // );
           dispatch(setArtIspending(true));
           if (window.location.pathname !== "/setup") {
-            console.log(window.location.pathname);
             navigate("/setup");
           }
         } else {
-          console.log("setting user");
           dispatch(userExists(data));
         }
       })
