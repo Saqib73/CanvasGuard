@@ -3,6 +3,7 @@ import axios from "axios";
 import sharp from "sharp";
 import crypto from "crypto";
 import fs from "fs/promises";
+import fsSync from "fs";
 import path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -65,8 +66,8 @@ export const applyWatermark = async (req, res, next) => {
 
     // 6️⃣ Temp files for OpenStego
 
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
+    if (!fsSync.existsSync(tempDir)) {
+      fsSync.mkdirSync(tempDir, { recursive: true });
     }
 
     const uuid = crypto.randomUUID();
@@ -96,7 +97,7 @@ export const applyWatermark = async (req, res, next) => {
     const { sha256, phash } = await generateImageHashes(stegoBuffer);
     if (!sha256 || !phash) {
       return res.status(500).json({
-        success: failed,
+        success: false,
         message: "hash generation failed",
       });
     }
