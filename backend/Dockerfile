@@ -17,28 +17,28 @@
 
 # CMD ["npm", "start"]
 
+
 FROM node:20-slim
 
-# Install Java and utilities needed
-RUN apt-get update && apt-get install -y default-jre wget unzip && apt-get clean
+# Install Java (needed for OpenStego)
+RUN apt-get update && apt-get install -y default-jre wget && apt-get clean
 
 WORKDIR /app
 
-# Download and extract OpenStego
-RUN wget --trust-server-names \
-    https://sourceforge.net/projects/openstego/files/openstego-0.8.6.zip/download \
-    -O openstego.zip \
-    && unzip openstego.zip -d /app/openstego \
-    && rm openstego.zip
+# Download your OpenStego JAR from GitHub Releases
+RUN wget https://github.com/Saqib73/CanvasGuard/releases/download/openstego/openstego.jar \
+    -O /app/openstego.jar
 
-# Copy backend package files first
+# Install backend dependencies
 COPY package*.json ./
 RUN npm install --production
 
-# Copy backend code
+# Copy backend source code
 COPY . .
 
 EXPOSE 5000
 
 CMD ["npm", "start"]
+
+
 

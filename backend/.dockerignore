@@ -4,3 +4,6 @@ temp
 uploads
 .env
 npm-debug.log
+openstego*
+*.jar
+.git
