@@ -64,6 +64,11 @@ export const applyWatermark = async (req, res, next) => {
       .toBuffer();
 
     // 6️⃣ Temp files for OpenStego
+
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
     const uuid = crypto.randomUUID();
     const origPath = path.join(tempDir, `${uuid}_orig.png`);
     const watermarkPath = path.join(tempDir, `${uuid}_watermark.txt`);
