@@ -8,6 +8,9 @@ import toast from "react-hot-toast";
 import { useEffect } from "react";
 import { useSocket } from "../socket";
 import { IoIosNotifications } from "react-icons/io";
+import { FaMoneyBillTrendUp } from "react-icons/fa6";
+import { VscGitPullRequestNewChanges } from "react-icons/vsc";
+import { IoIosCreate } from "react-icons/io";
 
 export const Layout = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -94,7 +97,9 @@ export const Layout = ({ children }) => {
                 }`
               }
             >
-              <span>👥</span>
+              <span>
+                <FaMoneyBillTrendUp />
+              </span>
               <span>Commissions</span>
             </NavLink>
 
@@ -133,7 +138,7 @@ export const Layout = ({ children }) => {
               }
             >
               <span>
-                <IoIosNotifications />
+                <VscGitPullRequestNewChanges />
               </span>
               <span>Comm Reqs</span>
             </NavLink>
@@ -147,7 +152,7 @@ export const Layout = ({ children }) => {
               }
             >
               <span>
-                <IoIosNotifications />
+                <IoIosCreate />
               </span>
               <span>Create your Comm</span>
             </NavLink>
