@@ -144,7 +144,7 @@ export default function CreatePost() {
   }, []);
 
   return (
-    <div>
+    <div className="h-full overflow-scroll">
       <div className="sticky top-0 backdrop-blur bg-black/60 border-b border-neutral-800 p-3 font-semibold">
         Post
       </div>
