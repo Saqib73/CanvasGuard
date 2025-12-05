@@ -16,12 +16,12 @@ const router = express.Router();
 // User Routes
 router.use(authMiddleware);
 router.get("/me", getMyProfile);
+router.put("/me", singleProfile, updateProfile);
 router.get("/getLikedPosts", getAllLikedPosts);
 router.get("/notification", getAllNotifications);
 router.get("/:userName", getUserProfile); // Show User Profile (my/others)
 router.post("/follow", followUser);
 router.post("/unfollow", unfollowUser);
-router.put("/me", singleProfile, updateProfile);
 
 // You can later add follow/unfollow here
 

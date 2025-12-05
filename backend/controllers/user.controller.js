@@ -44,7 +44,6 @@ export const updateProfile = async (req, res, next) => {
 
     if (req.file) {
       const file = req.file;
-
       const result = await uploadFilesToCloudinary([file]);
 
       const profilePic = {
@@ -69,6 +68,7 @@ export const updateProfile = async (req, res, next) => {
       user: updatedUser,
     });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };

@@ -83,6 +83,10 @@ const userSchema = new Schema(
     tags: {
       type: String,
     },
+    verified: {
+      type: Boolean,
+      required: true,
+    },
   },
   { timestamps: true }
 );
