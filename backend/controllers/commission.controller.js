@@ -7,6 +7,7 @@ import { ErrorHandler } from "../utils/ErrorHandler.js";
 export const getArtists = async (req, res, next) => {
   try {
     const { open, style, minFee, maxFee, sort } = req.query;
+    console.log("sort-->", sort, style);
 
     const query = {};
 

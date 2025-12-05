@@ -92,26 +92,30 @@ export default function Commissions() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {artists?.map((a) => (
-          <div key={a._id} className="border p-4 rounded shadow">
-            <img
-              src={a.user?.profilePic?.url || "/default.png"}
-              alt={a.user?.name}
-              className="w-20 h-20 rounded-full object-cover mb-2"
-            />
-            <h2 className="font-semibold">{a.user?.name}</h2>
-            <p className="text-sm text-gray-600">{a?.artStyles?.join(", ")}</p>
-            <p>Base fee: ₹{a.baseFee}</p>
-            {a.isOpenForCommission && (
-              <span className="text-green-600 text-sm font-medium">
-                Open for commissions
-              </span>
-            )}
-            <Link to={`/commissions/${a._id}`}>
-              <button className="mt-2 bg-gray-800 text-white text-sm px-3 py-1 rounded">
-                Request Commission
-              </button>
-            </Link>
-          </div>
+          <Link to={`/artist/${a.user?.userName}`}>
+            <div key={a._id} className="border p-4 rounded shadow">
+              <img
+                src={a.user?.profilePic?.url || "/default.png"}
+                alt={a.user?.name}
+                className="w-20 h-20 rounded-full object-cover mb-2"
+              />
+              <h2 className="font-semibold">{a.user?.name}</h2>
+              <p className="text-sm text-gray-600">
+                {a?.artStyles?.join(", ")}
+              </p>
+              <p>Base fee: ₹{a.baseFee}</p>
+              {a.isOpenForCommission && (
+                <span className="text-green-600 text-sm font-medium">
+                  Open for commissions
+                </span>
+              )}
+              <Link to={`/commissions/${a._id}`}>
+                <button className="mt-2 bg-gray-800 text-white text-sm px-3 py-1 rounded">
+                  Request Commission
+                </button>
+              </Link>
+            </div>
+          </Link>
         ))}
       </div>
     </div>

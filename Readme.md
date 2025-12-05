@@ -25,4 +25,10 @@
 # To Implement
 
 - Customize the watermark
-- Communities
+- Communities -> navigate to community page(with join btn?), individual post in community clickable
+- Better UI for like, comment
+- Implement Repost
+- Commissions-> filter fix, temp chat + payment integration, email when sending request
+- Create community-> better UI
+- Socket Io-> not working rn
+- SignUp-> opt verification(done + also fixed update profile)

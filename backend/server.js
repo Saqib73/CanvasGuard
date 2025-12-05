@@ -78,6 +78,16 @@ io.on("connection", (socket) => {
   });
 });
 
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 400;
+  const message = err.message || "Something went wrong";
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+  });
+});
+
 server.listen(PORT, () => {
   connectToMongoDB();
   console.log(`app is listening on- ${PORT}`);

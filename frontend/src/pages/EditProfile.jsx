@@ -41,8 +41,9 @@ export default function EditProfile() {
       const fd = new FormData();
       fd.append("name", formData.name);
       fd.append("bio", formData.bio);
-      if (file) fd.append("file", file); // backend expects req.file
-
+      if (file) {
+        fd.append("profile", file);
+      }
       // const { data } = await axios.put(
       //   `${import.meta.env.VITE_SERVER}/api/v1/user/me`,
       //   fd,
