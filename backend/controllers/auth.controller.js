@@ -12,12 +12,11 @@ import { UserOTPVerification } from "../model/UserOTPVerification.js";
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
-  port: 587,
-  secure: false,
+  host: "smtp.gmail.com",
+  port: 465,
   auth: {
-    user: `mertie.murray14@ethereal.email`,
-    pass: `veWkeRmdJUBwpDZh6D`,
+    user: `${process.env.EMAIL_USER}`,
+    pass: `${process.env.EMAIL_PASS}`,
   },
 });
 
@@ -27,7 +26,7 @@ export const sendMail = async ({ _id, email }, res) => {
     console.log(_id, email);
 
     const mailOptions = {
-      from: `"CanvasGuard" <mertie.murray14@ethereal.email>`,
+      from: `"CanvasGuard" <RAAINA WHALLA>`,
       to: `${email}`,
       subject: "Veirfy your email",
       html: `<p>OTP for verification of your email that you used to signup with canvasguard is: ${otp}</p>`,
