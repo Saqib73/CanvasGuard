@@ -51,9 +51,11 @@ export const Layout = ({ children }) => {
       <div className="mx-auto max-w-7xl grid grid-cols-12 relative h-screen">
         <aside className="col-span-2 border-r border-neutral-300 dark:border-neutral-800 p-4 space-y-6 sticky top-0 h-screen overflow-hidden transition-colors duration-200">
           <div className="px-4 text-xl font-semibold flex items-center justify-center">
-            <span className="bg-gradient-to-r from-sky-400 to-yellow-400 bg-clip-text text-transparent">
-              CanvasGuard
-            </span>
+            <NavLink to={"/"}>
+              <span className="bg-gradient-to-r from-sky-400 to-yellow-400 bg-clip-text text-transparent">
+                CanvasGuard
+              </span>
+            </NavLink>
           </div>
           <nav className="flex flex-col gap-3">
             <NavLink
@@ -66,17 +68,6 @@ export const Layout = ({ children }) => {
             >
               <span>🏠</span>
               <span>Home</span>
-            </NavLink>
-            <NavLink
-              to="/explore"
-              className={({ isActive }) =>
-                `px-4 py-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center gap-3 text-base transition-colors duration-200 ${
-                  isActive ? "font-semibold" : ""
-                }`
-              }
-            >
-              <span>🧭</span>
-              <span>Explore</span>
             </NavLink>
             <NavLink
               to="/communities"

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSocket } from "../socket";
 import { useGetNotificationsQuery } from "../redux/api/api";
+import { CardSkeleton } from "../layout/LayoutLoader";
+import { MainFeedCommonLoader } from "../layout/MainFeedCommonLoader";
 
 export const Notification = () => {
   const socket = useSocket();
@@ -14,7 +16,7 @@ export const Notification = () => {
     return () => socket.off("warning");
   }, [socket]);
 
-  if (isLoading) return <div>Loading notifications...</div>;
+  if (isLoading) return <MainFeedCommonLoader />;
 
   const allNotifications = [...liveNotifications, ...data.notifications];
 

@@ -28,6 +28,7 @@ import { Notification } from "./pages/Notification.jsx";
 import CommissionDetails from "./pages/CommissionDetails.jsx";
 import CommissionRequests from "./pages/CommissionRequests.jsx";
 import CreateCommunity from "./pages/CreateCommunity.jsx";
+import LayoutLoader from "./layout/LayoutLoader.jsx";
 
 export default function App() {
   const { user, loader, artistSetupPending } = useSelector(
@@ -37,20 +38,12 @@ export default function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // const loading = true;
     axios
       .get(`${import.meta.env.VITE_SERVER}/api/v1/user/me`, {
         withCredentials: true,
       })
       .then(({ data }) => {
-        // dispatch(userExists(data));
         if (data.isArtist && !data.artistProfile) {
-          // dispatch(
-          //   userExists({
-          //     user: data,
-          //     artistPendingSetup: data.isArtist && !data.artistProfile,
-          //   })
-          // );
           dispatch(setArtIspending(true));
           if (window.location.pathname !== "/setup") {
             navigate("/setup");
@@ -62,8 +55,7 @@ export default function App() {
       .catch(() => dispatch(userNotExists()));
   }, [dispatch, navigate]);
 
-  if (loader) return <div>Loading...</div>;
-  // if (user && artistPendingSetup) return <Navigate to="/setup" />;
+  if (loader) return <LayoutLoader />;
 
   return (
     <SocketProvider>
@@ -143,15 +135,6 @@ export default function App() {
   );
 }
 
-function Explore() {
-  return <div className="p-4">Explore</div>;
-}
-function Upload() {
-  return <div className="p-4">Upload</div>;
-}
 function Gallery() {
   return <div className="p-4">Gallery</div>;
-}
-function Prompts() {
-  return <div className="p-4">Prompts</div>;
 }

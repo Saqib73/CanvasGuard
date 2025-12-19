@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import Composer from "../../components/Composer.jsx";
 import Tweet from "../../components/Tweet.jsx";
 import { useGetPostsQuery } from "../../redux/api/api.js";
+import { CardSkeleton } from "../../layout/LayoutLoader.jsx";
+import { MainFeedCommonLoader } from "../../layout/MainFeedCommonLoader.jsx";
 
 export default function Home() {
   const [active, setActive] = useState("For you");
@@ -24,7 +26,7 @@ export default function Home() {
   });
 
   return data.isLoading ? (
-    <div>loading...</div>
+    <MainFeedCommonLoader />
   ) : (
     <div className="h-full flex flex-col">
       <div className="sticky top-0 z-10 bg-cg-bg transition-colors duration-200">

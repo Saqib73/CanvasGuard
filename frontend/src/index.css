@@ -7,7 +7,7 @@
 
 @layer base {
   :root {
-    --cg-bg: 15 15 18;
+    --cg-bg: 0 0 0;
     /* near-black */
     --cg-card: 24 24 27;
     /* neutral-900 */

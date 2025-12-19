@@ -17,6 +17,7 @@ import axios from "axios";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
+import { CardSkeleton } from "../layout/LayoutLoader";
 // import { useStore } from "../store";
 
 export default function Tweet({ post }) {
@@ -110,7 +111,7 @@ export default function Tweet({ post }) {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  if (loader) return <div>Loading...</div>;
+  if (loader) return <CardSkeleton />;
 
   return (
     <div className="flex gap-3 p-4 border-b border-neutral-300 dark:border-neutral-800 hover:bg-neutral-800/50 dark:hover:bg-neutral-800/30 transition-colors duration-200">
