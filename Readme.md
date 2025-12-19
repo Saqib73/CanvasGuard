@@ -32,3 +32,7 @@
 - Create community-> better UI
 - Socket Io-> not working rn
 - SignUp-> opt verification(done + also fixed update profile)
+- Better Loaders(loading...)
+- hashtags should be blue, clickable and an api to filter by tags(?tag="")
+- Add how the app works in github(with images)
+- Add source to openstego

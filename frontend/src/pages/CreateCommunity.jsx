@@ -47,12 +47,12 @@ const CreateCommunity = () => {
   };
 
   return (
-    <div className="max-w-xl h-full mx-auto p-6 bg-gray-900 text-white rounded-xl shadow-xl mt-10 overflow-scroll">
+    <div className="max-w-xl h-full mx-auto p-6 bg-gray-950 text-white rounded-xl shadow-xl mt-4 overflow-scroll">
       <h1 className="text-2xl font-bold mb-4">Create Community</h1>
 
       <label className="block mb-2 font-semibold">Community Name *</label>
       <input
-        className="w-full p-2 rounded bg-gray-800 border border-gray-700"
+        className="w-full p-2 rounded bg-gray-900 border border-gray-700"
         placeholder="e.g. DigitalArtists"
         value={name}
         onChange={(e) => setName(e.target.value)}
@@ -60,7 +60,7 @@ const CreateCommunity = () => {
 
       <label className="block mt-4 mb-2 font-semibold">Description *</label>
       <textarea
-        className="w-full p-2 rounded bg-gray-800 border border-gray-700"
+        className="w-full p-2 rounded bg-gray-900 border border-gray-800"
         rows={3}
         placeholder="Describe your community..."
         value={description}
@@ -69,7 +69,7 @@ const CreateCommunity = () => {
 
       <label className="block mt-4 mb-2 font-semibold">Rules (optional)</label>
       <textarea
-        className="w-full p-2 rounded bg-gray-800 border border-gray-700"
+        className="w-full p-2 rounded bg-gray-900 border border-gray-800"
         rows={3}
         placeholder="Community rules..."
         value={rules}
@@ -81,20 +81,20 @@ const CreateCommunity = () => {
         type="file"
         accept="image/*"
         onChange={handleCoverChange}
-        className="w-full p-2 bg-gray-800 border border-gray-700 rounded"
+        className="w-full p-2 bg-gray-900 border border-gray-800 rounded"
       />
 
       {preview && (
         <img
           src={preview}
           alt="Cover Preview"
-          className="mt-4 w-full h-48 object-cover rounded-lg border border-gray-700"
+          className="mt-4 w-full h-48 object-cover rounded-lg border border-gray-800"
         />
       )}
 
       <button
         onClick={handleCreate}
-        className="mt-6 w-full bg-blue-600 hover:bg-blue-700 py-2 rounded-lg font-semibold"
+        className="mt-6 w-full bg-blue-700 hover:bg-blue-800 py-2 rounded-lg font-semibold"
       >
         Create Community
       </button>

@@ -139,6 +139,9 @@ export default function Login() {
               >
                 Sign in
               </button>
+              <div className="text-xs mt-2 text-gray-400">
+                Test Login User - raaina(123456)
+              </div>
             </div>
           </form>
 
