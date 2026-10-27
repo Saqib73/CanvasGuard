@@ -14,7 +14,11 @@ export const authMiddleware = async (req, res, next) => {
       return next(new ErrorHandler("Unauthorized - no token provided", 401));
     }
 
-    const user = await User.findById(decoded.userId).select("-password");
+    // Tokens issued before the fix embedded the whole user document as userId
+    const userId =
+      typeof decoded.userId === "object" ? decoded.userId?._id : decoded.userId;
+
+    const user = await User.findById(userId).select("-password");
     if (!user) return next(new ErrorHandler("User not found", 404));
 
     req.user = user;

@@ -1,3 +1,4 @@
+import { MEDIA_PUBLIC_FIELDS } from "../model/Media.js";
 import { uploadFilesToCloudinary } from "../features/uploadFilesToCoudinary.js";
 import { Notification } from "../model/Notification.js";
 import { User } from "../model/User.js";
@@ -7,7 +8,9 @@ export const getUserProfile = async (req, res, next) => {
   try {
     console.log("inside user profile");
     const userName = req.params;
+    // Public profile: never expose the password hash or someone else's email
     const user = await User.findOne(userName)
+      .select("-password -email")
       .populate({
         path: "posts",
         populate: [
@@ -17,7 +20,7 @@ export const getUserProfile = async (req, res, next) => {
           },
           {
             path: "media",
-            select: "url",
+            select: MEDIA_PUBLIC_FIELDS,
           },
         ],
       })
@@ -49,6 +52,9 @@ export const updateProfile = async (req, res, next) => {
       const profilePic = {
         public_id: result[0].public_id,
         url: result[0].url,
+        width: result[0].width,
+        height: result[0].height,
+        blurDataUrl: result[0].blurDataUrl,
       };
       updateFields.profilePic = profilePic;
     }
@@ -77,6 +83,7 @@ export const getMyProfile = async (req, res, next) => {
   try {
     // const userName = req.params;
     const user = await User.findById(req.user._id)
+      .select("-password")
       .populate("posts")
       .populate("followers", "userName")
       .populate("following", "userName");
@@ -174,7 +181,7 @@ export const getAllLikedPosts = async (req, res, next) => {
           },
           {
             path: "media",
-            select: "url",
+            select: MEDIA_PUBLIC_FIELDS,
           },
         ],
       });
