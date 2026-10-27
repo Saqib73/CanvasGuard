@@ -1,0 +1,38 @@
+export const dummyArtists = [
+  {
+    id: 1,
+    name: "Aarav Kapoor",
+    artStyle: "Digital Painting",
+    fee: 1500,
+    open: true,
+    avatar: "https://i.pravatar.cc/100?img=1",
+    bio: "Specializes in fantasy portraits and vibrant color palettes.",
+  },
+  {
+    id: 2,
+    name: "Meera Singh",
+    artStyle: "Pixel Art",
+    fee: 800,
+    open: false,
+    avatar: "https://i.pravatar.cc/100?img=2",
+    bio: "Retro pixel artist passionate about gaming and nostalgia.",
+  },
+  {
+    id: 3,
+    name: "Karan Patel",
+    artStyle: "Sketch/Illustration",
+    fee: 500,
+    open: true,
+    avatar: "https://i.pravatar.cc/100?img=3",
+    bio: "Minimalist sketch artist focusing on character design.",
+  },
+  {
+    id: 4,
+    name: "Riya Mehta",
+    artStyle: "3D Art",
+    fee: 2500,
+    open: true,
+    avatar: "https://i.pravatar.cc/100?img=4",
+    bio: "Creates stylized 3D environments and portraits.",
+  },
+];
