@@ -19,6 +19,9 @@ const LOGIN_PANEL = {
   ],
 };
 
+// Shown on the login page so visitors can try the app without signing up
+const DEMO_ACCOUNT = { identifier: "raaina", password: "123456" };
+
 export default function Login() {
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [identifier, setIdentifier] = useState("");
@@ -111,11 +114,23 @@ export default function Login() {
           {isLoading ? "Signing in..." : "Sign in"}
         </button>
 
-        {import.meta.env.DEV && (
-          <p className="text-center text-xs text-cg-muted">
-            Dev test login: raaina / 123456
-          </p>
-        )}
+        <div className="rounded-xl border border-dashed border-base-300 p-3 text-center text-xs text-cg-muted">
+          Just looking around? Use the demo account:{" "}
+          <span className="font-medium text-base-content">{DEMO_ACCOUNT.identifier}</span>
+          {" / "}
+          <span className="font-medium text-base-content">{DEMO_ACCOUNT.password}</span>
+          {" · "}
+          <button
+            type="button"
+            onClick={() => {
+              setIdentifier(DEMO_ACCOUNT.identifier);
+              setPassword(DEMO_ACCOUNT.password);
+            }}
+            className={linkButtonClass}
+          >
+            Fill in
+          </button>
+        </div>
       </form>
     </AuthLayout>
   );
