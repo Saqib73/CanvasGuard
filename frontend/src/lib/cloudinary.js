@@ -14,10 +14,13 @@ export const isCloudinaryUrl = (url) =>
 export const getOptimizedUrl = (url, { width, quality = "auto", format = "auto", crop = "limit" } = {}) => {
   if (!isCloudinaryUrl(url)) return url;
 
+  // Older uploads were stored as http://. Browsers block insecure srcset candidates
+  // on an https page instead of upgrading them, so always ask Cloudinary over https.
+  const secureUrl = url.replace(/^http:\/\//, "https://");
   const transformations = [`f_${format}`, `q_${quality}`];
   if (width) transformations.push(`w_${width}`, `c_${crop}`);
 
-  return url.replace(UPLOAD_SEGMENT, `${UPLOAD_SEGMENT}${transformations.join(",")}/`);
+  return secureUrl.replace(UPLOAD_SEGMENT, `${UPLOAD_SEGMENT}${transformations.join(",")}/`);
 };
 
 /**

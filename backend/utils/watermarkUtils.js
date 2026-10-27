@@ -134,8 +134,8 @@ const escapeXml = (s) =>
   String(s).replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c]);
 
 /**
- * Tiles a diagonal "© @userName · CanvasGuard" mark across the whole image,
- * sized to the image, readable on both light and dark artwork.
+ * Signs the bottom-right corner with "© @userName", sized to the image and
+ * readable on both light and dark artwork.
  */
 export const applyVisibleWatermark = async (buffer, userName) => {
   // Bake EXIF orientation in first so the overlay matches what viewers see
