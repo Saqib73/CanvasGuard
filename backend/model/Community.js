@@ -21,6 +21,18 @@ const communitySchema = new Schema(
         type: String,
         required: true,
       },
+      width: {
+        type: Number,
+        default: null,
+      },
+      height: {
+        type: Number,
+        default: null,
+      },
+      blurDataUrl: {
+        type: String,
+        default: null,
+      },
     },
     members: [
       {
@@ -32,12 +44,7 @@ const communitySchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    posts: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Post",
-      },
-    ],
+    // No `posts` array here: posts are linked via Post.community
     rules: {
       type: String,
       default: "",
