@@ -1,7 +1,9 @@
+import mongoose from "mongoose";
 import { uploadFilesToCloudinary } from "../features/uploadFilesToCoudinary.js";
+import { Community } from "../model/Community.js";
 import { Post } from "../model/Post.js";
 import { User } from "../model/User.js";
-import { Media } from "../model/Media.js";
+import { Media, MEDIA_PUBLIC_FIELDS } from "../model/Media.js";
 import { ErrorHandler } from "../utils/ErrorHandler.js";
 import { generateImageHashes } from "../utils/hashUtils.js";
 import { v2 as cloudinary } from "cloudinary";
@@ -10,72 +12,44 @@ import path from "path";
 import { emitEvent } from "../utils/features.js";
 import { Notification } from "../model/Notification.js";
 
-// export const upload = async (req, res, next) => {
-//   try {
-//     console.log(req.files);
-//     const file = req.files || [];
-//     if (file.length < 1)
-//       return next(new ErrorHandler("Please upload a file", 401));
-//     console.log("file", file);
-
-//     const result = await uploadFilesToCloudinary(file);
-
-//     return res.status(200).json({
-//       success: true,
-//       public_id: result[0].public_id,
-//       url: result[0].url,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     next(error);
-//   }
-// };
-
-// Create Post
-
+// Upload Image / Media
 export const upload = async (req, res, next) => {
   try {
     const files = req.files || [];
     if (files.length < 1)
       return next(new ErrorHandler("Please upload a file", 401));
 
-    const userId = req.userId;
+    const userId = req.user._id;
     const file = files[0];
 
-    // Generate hash from the temp file
-    // const newHash = await generateImageHash(tempPath);
-    const result = await uploadFilesToCloudinary(files);
+    // Hash while uploading; Media must exist before we respond, or createPost can't find it
+    const [result, hashes] = await Promise.all([
+      uploadFilesToCloudinary(files),
+      generateImageHashes(file.buffer),
+    ]);
 
-    res.status(200).json({
+    await Media.create({
+      public_id: result[0].public_id,
+      url: result[0].url,
+      type: "image",
+      userId,
+      ...hashes,
+      width: result[0].width,
+      height: result[0].height,
+      format: result[0].format,
+      blurDataUrl: result[0].blurDataUrl,
+      isWaterMarked: false,
+    });
+
+    return res.status(200).json({
       success: true,
       public_id: result[0].public_id,
       url: result[0].url,
+      width: result[0].width,
+      height: result[0].height,
+      format: result[0].format,
+      blurDataUrl: result[0].blurDataUrl,
       message: "File uploaded successfully.",
-    });
-
-    setImmediate(async () => {
-      try {
-        const { sha256, phash } = await generateImageHashes(file.buffer);
-
-        await Media.create({
-          public_id: result[0].public_id,
-          url: result[0].url,
-          type: "image",
-          userId,
-          sha256,
-          phash,
-          isWaterMarked: false,
-        });
-
-        console.log(
-          `✅ Hashes computed and media saved for ${result[0].public_id}`
-        );
-      } catch (bgErr) {
-        console.error(
-          "⚠️ Failed to compute hashes in background:",
-          bgErr.message
-        );
-      }
     });
   } catch (error) {
     console.error(error);
@@ -83,6 +57,7 @@ export const upload = async (req, res, next) => {
   }
 };
 
+// Create Post
 export const createPost = async (req, res, next) => {
   try {
     const { description, public_id, isArt, community } = req.body;
@@ -98,14 +73,33 @@ export const createPost = async (req, res, next) => {
       );
     }
 
-    const media = await Media.findOne({ public_id });
+    const media = public_id ? await Media.findOne({ public_id }) : null;
+    if (public_id && !media)
+      return next(new ErrorHandler("Uploaded media not found", 404));
+    if (media?.userId && media.userId.toString() !== userId.toString())
+      return next(new ErrorHandler("You can only post media you uploaded", 403));
+
+    // Posting into a community requires it to exist and the author to be a member
+    const communityId = community ? community : null;
+    if (communityId) {
+      if (!mongoose.isValidObjectId(communityId))
+        return next(new ErrorHandler("Invalid community", 400));
+      const isMember = await Community.exists({
+        _id: communityId,
+        members: userId,
+      });
+      if (!isMember)
+        return next(
+          new ErrorHandler("Join this community before posting in it", 403)
+        );
+    }
 
     const post = new Post({
       author: userId,
       description: description || "",
       ...(media && { media: media._id }),
       isArt,
-      community: community == "" ? null : community,
+      community: communityId,
     });
 
     await post.save();
@@ -137,7 +131,7 @@ export const getAllPosts = async (req, res, next) => {
         path: "comments",
         populate: { path: "author", select: "userName profilePic" },
       })
-      .populate("media", "url");
+      .populate("media", MEDIA_PUBLIC_FIELDS);
 
     if (following === "true") {
       const user = await User.findById(req.user._id).populate("following");
@@ -149,7 +143,7 @@ export const getAllPosts = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Posts fetch sucessfully",
+      message: "Posts fetch successfully",
       posts,
     });
   } catch (err) {
@@ -166,7 +160,7 @@ export const getPost = async (req, res, next) => {
         path: "comments",
         populate: { path: "author", select: "name userName profilePic" },
       })
-      .populate("media", "url");
+      .populate("media", MEDIA_PUBLIC_FIELDS);
 
     if (!post) return next(new ErrorHandler("Post not found", 404));
 
@@ -189,7 +183,6 @@ export const deletePost = async (req, res, next) => {
     const post = await Post.findById(postId).populate("media", "public_id");
 
     if (!post) return next(new ErrorHandler("Post not found", 404));
-    // console.log(post.author, req.user._id);
     console.log("post.author:", post.author, typeof post.author);
     console.log("req.user._id:", req.user._id, typeof req.user._id);
 
@@ -245,7 +238,7 @@ export const likePost = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const user = await User.findById(userId);
-    const { postId } = req.body; // postId
+    const { postId } = req.body;
 
     const post = await Post.findById(postId);
     if (!post) return next(new ErrorHandler("Post not Found", 404));
@@ -298,7 +291,7 @@ export const getUserPosts = async (req, res, next) => {
     const userId = req.body;
     const userPosts = await Post.find({ author: userId })
       .populate("author", "userName name profilePic")
-      .populate("media", "url");
+      .populate("media", MEDIA_PUBLIC_FIELDS);
 
     return res.status(200).json({
       success: true,
@@ -309,5 +302,3 @@ export const getUserPosts = async (req, res, next) => {
     next(error);
   }
 };
-
-// export const

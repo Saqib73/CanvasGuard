@@ -5,6 +5,7 @@ import {
   logout,
   setupArtistProfile,
   verifyOTP,
+  resendOTP,
 } from "../controllers/auth.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { singleProfile } from "../middleware/multer.middleware.js";
@@ -17,5 +18,6 @@ router.post("/login", login);
 router.get("/logout", authMiddleware, logout);
 router.post("/artistProfile", authMiddleware, setupArtistProfile);
 router.post("/verify", verifyOTP);
+router.post("/resend-otp", resendOTP);
 
 export default router;

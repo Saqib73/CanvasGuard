@@ -22,6 +22,6 @@ router.get("/feed/home", getHomeFeed);
 router.get("/feed/explore", getExploreFeed);
 router.get("/:communityId", getCommunity);
 router.post("/join/:id", joinCommunity);
-router.post("/join/:id", leaveCommunity);
+router.post("/leave/:id", leaveCommunity);
 
 export default router;

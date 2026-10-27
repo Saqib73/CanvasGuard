@@ -1,28 +1,53 @@
+import mongoose from "mongoose";
 import { uploadFilesToCloudinary } from "../features/uploadFilesToCoudinary.js";
 import { Community } from "../model/Community.js";
+import { MEDIA_PUBLIC_FIELDS } from "../model/Media.js";
 import { Post } from "../model/Post.js";
 import { User } from "../model/User.js";
 import { ErrorHandler } from "../utils/ErrorHandler.js";
 
+const AUTHOR_FIELDS = "userName name profilePic";
+
+// Community feed posts with only client-safe media fields
+const findCommunityPosts = (filter) =>
+  Post.find(filter)
+    .sort({ createdAt: -1 })
+    .populate("author", AUTHOR_FIELDS)
+    .populate("community", "name coverArt")
+    .populate("media", MEDIA_PUBLIC_FIELDS);
+
 // Create a new community
 export const createCommunity = async (req, res, next) => {
   try {
-    const { name, rules, description } = req.body;
+    const name = req.body.name?.trim();
+    const description = req.body.description?.trim();
+    const rules = req.body.rules?.trim() || "";
+    const files = req.files || [];
 
-    const file = req.files;
-    console.log("file-->", file);
+    // Validate before uploading so failures don't leave orphaned images
+    if (!name || !description)
+      return next(new ErrorHandler("Name and description are required", 400));
+    if (files.length < 1)
+      return next(new ErrorHandler("Please upload a cover image", 400));
 
-    if (!file) return new ErrorHandler("please upload profile", 403);
-    const result = await uploadFilesToCloudinary(file);
+    const nameTaken = await Community.exists({
+      name: { $regex: `^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" },
+    });
+    if (nameTaken)
+      return next(new ErrorHandler("A community with this name already exists", 409));
+
+    const result = await uploadFilesToCloudinary(files);
 
     const coverArt = {
       public_id: result[0].public_id,
       url: result[0].url,
+      width: result[0].width,
+      height: result[0].height,
+      blurDataUrl: result[0].blurDataUrl,
     };
     const createdBy = req.user._id;
-    const user = await User.findById(createdBy);
 
-    const community = new Community({
+    const community = await Community.create({
       name,
       coverArt,
       rules,
@@ -31,76 +56,90 @@ export const createCommunity = async (req, res, next) => {
       description,
     });
 
-    await community.save();
-    user.communities.push(community._id);
+    await User.updateOne(
+      { _id: createdBy },
+      { $addToSet: { communities: community._id } }
+    );
 
-    await user.save();
     return res.status(201).json({
       success: true,
       message: "Community Created!",
       community,
     });
   } catch (err) {
-    console.log(err);
+    // Lost a race with another request creating the same name
+    if (err?.code === 11000)
+      return next(new ErrorHandler("A community with this name already exists", 409));
     next(err);
   }
 };
 
-// Join or leave community
-export const joinCommunity = async (req, res) => {
+export const joinCommunity = async (req, res, next) => {
   try {
-    const { communityId } = req.params;
+    const { id } = req.params;
     const userId = req.user._id;
 
-    const community = await Community.findById(communityId);
-    const user = await User.findById(userId);
+    if (!mongoose.isValidObjectId(id))
+      return next(new ErrorHandler("Invalid community id", 400));
 
-    if (!community || !user)
-      return res.status(404).json({ message: "Community or User not found" });
+    // Atomic: only matches if the user isn't already a member
+    const result = await Community.updateOne(
+      { _id: id, members: { $ne: userId } },
+      { $addToSet: { members: userId } }
+    );
 
-    if (community.members.includes(userId))
-      return res.status(400).json({ message: "Already a member" });
+    if (result.matchedCount === 0) {
+      const exists = await Community.exists({ _id: id });
+      return next(
+        exists
+          ? new ErrorHandler("Already a member", 400)
+          : new ErrorHandler("Community not found", 404)
+      );
+    }
 
-    community.members.push(userId);
-    user.communities.push(communityId);
+    await User.updateOne({ _id: userId }, { $addToSet: { communities: id } });
 
-    await Promise.all([community.save(), user.save()]);
-
-    res.status(200).json({ message: "Joined community successfully" });
+    res.status(200).json({ success: true, message: "Joined community successfully" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
 
-export const leaveCommunity = async (req, res) => {
+export const leaveCommunity = async (req, res, next) => {
   try {
-    const { communityId } = req.params;
+    const { id } = req.params;
     const userId = req.user._id;
 
-    const community = await Community.findById(communityId);
-    const user = await User.findById(userId);
+    if (!mongoose.isValidObjectId(id))
+      return next(new ErrorHandler("Invalid community id", 400));
 
-    if (!community || !user)
-      return res.status(404).json({ message: "Community or User not found" });
+    const community = await Community.findById(id).select("createdBy members").lean();
+    if (!community) return next(new ErrorHandler("Community not found", 404));
 
-    if (!community.members.includes(userId))
-      return res.status(400).json({ message: "You are not a member" });
+    if (community.createdBy?.toString() === userId.toString())
+      return next(
+        new ErrorHandler("The creator can't leave their own community", 400)
+      );
 
-    community.members.pull(userId);
-    user.communities.pull(communityId);
+    const result = await Community.updateOne(
+      { _id: id, members: userId },
+      { $pull: { members: userId } }
+    );
+    if (result.matchedCount === 0)
+      return next(new ErrorHandler("You are not a member", 400));
 
-    await Promise.all([community.save(), user.save()]);
+    await User.updateOne({ _id: userId }, { $pull: { communities: id } });
 
-    res.status(200).json({ message: "Left community successfully" });
+    res.status(200).json({ success: true, message: "Left community successfully" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
 
 export const getAllCommunities = async (req, res, next) => {
   try {
     const communities = await Community.find()
-      .populate("createdBy", "userName name profilePic")
+      .populate("createdBy", AUTHOR_FIELDS)
       .select("name coverArt members createdBy");
     return res.status(200).json({
       success: true,
@@ -115,79 +154,65 @@ export const getCommunity = async (req, res, next) => {
   try {
     const { communityId } = req.params;
 
+    if (!mongoose.isValidObjectId(communityId))
+      return next(new ErrorHandler("Invalid community id", 400));
+
     const community = await Community.findById(communityId)
-      .populate("createdBy", "userName name profilePic")
-      .populate("members", "userName name profilePic")
-      .populate({
-        path: "posts",
-        populate: { path: "author", select: "userName name profilePic" },
-      });
+      .populate("createdBy", AUTHOR_FIELDS)
+      .populate("members", AUTHOR_FIELDS)
+      .lean();
 
     if (!community) return next(new ErrorHandler("Community Not Found", 404));
 
+    // Posts are linked by Post.community, the single source of truth
+    const posts = await findCommunityPosts({ community: community._id });
+
     return res.status(200).json({
       success: true,
-      community,
+      community: { ...community, posts },
     });
   } catch (err) {
     next(err);
   }
 };
 
-export const getMyCommunities = async (req, res) => {
+// Lightweight list for the communities strip; posts come from the feeds
+export const getMyCommunities = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
     const communities = await Community.find({ members: userId })
-      .populate("createdBy", "name userName profilePic")
-      .populate({
-        path: "members",
-        select: "name userName profilePic",
-      })
-      .populate({
-        path: "posts",
-        populate: [
-          { path: "author", select: "name userName profilePic" },
-          { path: "media" }, // media contains url, public_id
-          {
-            path: "comments",
-            populate: { path: "author", select: "name userName profilePic" },
-          },
-        ],
-      });
+      .populate("createdBy", AUTHOR_FIELDS)
+      .select("name description coverArt members createdBy");
 
     res.status(200).json({ success: true, communities });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    next(err);
   }
 };
 
-export const getHomeFeed = async (req, res) => {
-  const userId = req.user._id;
+export const getHomeFeed = async (req, res, next) => {
+  try {
+    const communityIds = await Community.find({
+      members: req.user._id,
+    }).distinct("_id");
 
-  const userCommunities = await Community.find({
-    members: userId,
-  }).select("_id");
+    // only posts inside joined communities
+    const posts = await findCommunityPosts({ community: { $in: communityIds } });
 
-  const posts = await Post.find({
-    community: { $in: userCommunities }, // only posts inside joined communities
-  })
-    .sort({ createdAt: -1 })
-    .populate("author", "userName name profilePic")
-    .populate("community", "name coverArt")
-    .populate("media");
-
-  res.json({ success: true, posts });
+    res.json({ success: true, posts });
+  } catch (err) {
+    next(err);
+  }
 };
 
-export const getExploreFeed = async (req, res) => {
-  const posts = await Post.find({
-    community: { $ne: null }, // only posts that belong to communities
-  })
-    .sort({ createdAt: -1 })
-    .populate("author", "userName name profilePic")
-    .populate("community", "name coverArt")
-    .populate("media");
+export const getExploreFeed = async (req, res, next) => {
+  try {
+    // only posts that belong to communities
+    const posts = await findCommunityPosts({ community: { $ne: null } });
 
-  res.json({ success: true, posts });
+    res.json({ success: true, posts });
+  } catch (err) {
+    next(err);
+  }
 };

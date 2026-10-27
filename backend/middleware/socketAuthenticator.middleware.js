@@ -12,7 +12,13 @@ const socketAuthenticator = async (err, socket, next) => {
 
     const decodedData = jwt.verify(authToken, process.env.JWT_SECRET);
 
-    const user = await User.findById(decodedData.userId);
+    // Tokens issued before the fix embedded the whole user document as userId
+    const userId =
+      typeof decodedData.userId === "object"
+        ? decodedData.userId?._id
+        : decodedData.userId;
+
+    const user = await User.findById(userId).select("-password");
 
     if (!user)
       return next(new ErrorHandler("Please login to access this route", 401));

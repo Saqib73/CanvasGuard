@@ -1,5 +1,1 @@
-const Report = () => {
-  return <div>Report</div>;
-};
-
-export default Report;
+export { ReportPage as default, ReportPage as Report } from "../../features/reports/pages/ReportPage";

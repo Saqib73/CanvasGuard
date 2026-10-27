@@ -10,10 +10,16 @@ const userSchema = new Schema(
     userName: {
       type: String,
       required: true,
+      trim: true,
+      index: true,
     },
+    // Stored lowercase; uniqueness is enforced (case-insensitively) in auth.controller
     email: {
       type: String,
       required: true,
+      trim: true,
+      lowercase: true,
+      index: true,
     },
     bio: {
       type: String,
@@ -52,14 +58,25 @@ const userSchema = new Schema(
       ref: "ArtistProfile",
     },
 
+    // Optional; the client shows an initials placeholder when there's no url
     profilePic: {
       public_id: {
         type: String,
-        required: true,
       },
       url: {
         type: String,
-        required: true,
+      },
+      width: {
+        type: Number,
+        default: null,
+      },
+      height: {
+        type: Number,
+        default: null,
+      },
+      blurDataUrl: {
+        type: String,
+        default: null,
       },
     },
     communities: [
@@ -91,4 +108,4 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-export const User = mongoose.model("User", userSchema) || mongoose.model.User;
+export const User = mongoose.models.User || mongoose.model("User", userSchema);

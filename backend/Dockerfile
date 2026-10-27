@@ -28,6 +28,7 @@ WORKDIR /app
 # Download your OpenStego JAR from GitHub Releases
 RUN wget https://github.com/Saqib73/CanvasGuard/releases/download/openstego/openstego.jar \
     -O /app/openstego.jar
+ENV OPENSTEGO_JAR=/app/openstego.jar
 
 # Install backend dependencies
 COPY package*.json ./
