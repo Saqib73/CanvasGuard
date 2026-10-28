@@ -64,6 +64,12 @@ const mediaSchema = new Schema(
       type: String,
       default: null,
     },
+    // Set when the owner deletes the post: the file is gone from Cloudinary, but the
+    // hashes stay so earlier copies can still be traced back to this artist
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

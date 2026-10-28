@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 dotenv.config();
 import { connectToMongoDB } from "./db/connectToMongoDB.js";
+import { resumeWatermarkJobs } from "./services/watermarkQueue.js";
 import auth from "./routes/auth.route.js";
 import user from "./routes/user.route.js";
 import comment from "./routes/comment.route.js";
@@ -89,7 +90,9 @@ app.use((err, req, res, next) => {
 });
 
 server.listen(PORT, () => {
-  connectToMongoDB();
+  connectToMongoDB()
+    .then(resumeWatermarkJobs)
+    .catch((err) => console.error("Could not resume watermark jobs:", err.message));
   console.log(`app is listening on- ${PORT}`);
 });
 
