@@ -4,3 +4,4 @@ openstego-0.8.6/
 openstego/
 *.jar
 frontend/dist/
+backend/scripts/.seed-cache.json

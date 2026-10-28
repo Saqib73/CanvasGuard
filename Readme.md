@@ -150,7 +150,7 @@ frontend/src/
 2. **Backend** (`backend/.env`):
    ```env
    PORT=8000
-   MONGO_URL=mongodb+srv://...
+   MONGO_URL=mongodb+srv://...    # local dev: mongodb://127.0.0.1:27017/canvasguard-dev
    JWT_SECRET=...
    WATERMARK_SECRET=...          # keep stable: changing it invalidates existing watermarks
    CLOUDINARY_CLOUD_NAME=...
@@ -159,6 +159,7 @@ frontend/src/
    EMAIL_USER=...                # SMTP sender for OTP emails
    EMAIL_PASS=...                # app password
    # OPENSTEGO_JAR=/path/to/openstego.jar
+   # CLOUDINARY_FOLDER=dev            # keep local uploads in their own folder
    ```
    ```bash
    cd backend && npm install && npm start
