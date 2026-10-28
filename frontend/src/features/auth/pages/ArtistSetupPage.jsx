@@ -1,7 +1,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { FaTimes } from "react-icons/fa";
 import { MdOutlineBrush } from "react-icons/md";
+import StyleChipsInput from "../components/StyleChipsInput";
 import { useCompleteArtistSetup, useCurrentUser, useLogout } from "../api/auth.hooks";
 import { getErrorMessage } from "../../../lib/api-client";
 import AuthLayout from "../components/AuthLayout";
@@ -18,11 +18,6 @@ const ARTIST_PANEL = {
   ],
 };
 
-const SUGGESTED_STYLES = [
-  "Digital painting", "Anime", "Character design", "Concept art",
-  "Watercolor", "Realism", "Pixel art", "Line art", "3D",
-];
-
 const MAX_STYLES = 10;
 const MAX_BIO = 200;
 
@@ -32,35 +27,12 @@ export default function ArtistSetupForm() {
   const { mutate: logout } = useLogout();
 
   const [styles, setStyles] = useState([]);
-  const [styleInput, setStyleInput] = useState("");
   const [form, setForm] = useState({
     baseFee: "",
     deliveryTime: "",
     bio: "",
     openForCommission: true,
   });
-
-  const addStyle = (raw) => {
-    const style = raw.trim().replace(/,$/, "");
-    if (!style) return;
-    setStyles((prev) =>
-      prev.length >= MAX_STYLES || prev.some((s) => s.toLowerCase() === style.toLowerCase())
-        ? prev
-        : [...prev, style]
-    );
-    setStyleInput("");
-  };
-
-  const removeStyle = (style) => setStyles((prev) => prev.filter((s) => s !== style));
-
-  const handleStyleKeyDown = (e) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      addStyle(styleInput);
-    } else if (e.key === "Backspace" && !styleInput && styles.length) {
-      removeStyle(styles[styles.length - 1]);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -69,8 +41,8 @@ export default function ArtistSetupForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Include whatever is still typed in the style box
-    const artStyles = styleInput.trim() ? [...styles, styleInput.trim()] : styles;
+    // Text still in the style box was added when the input lost focus on submit
+    const artStyles = styles;
     if (artStyles.length === 0) return toast.error("Add at least one art style");
 
     const toastId = toast.loading("Setting up your artist profile...");
@@ -85,10 +57,6 @@ export default function ArtistSetupForm() {
       toast.error(getErrorMessage(err, "Could not save your artist profile"), { id: toastId });
     }
   };
-
-  const unusedSuggestions = SUGGESTED_STYLES.filter(
-    (s) => !styles.some((x) => x.toLowerCase() === s.toLowerCase())
-  );
 
   return (
     <AuthLayout
@@ -112,40 +80,7 @@ export default function ArtistSetupForm() {
           htmlFor="artStyles"
           hint={`Press Enter or comma to add. Up to ${MAX_STYLES}.`}
         >
-          <div className="flex min-h-[46px] flex-wrap items-center gap-2 rounded-xl border border-base-300 bg-base-100 px-2.5 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-cg-primary/30">
-            {styles.map((style) => (
-              <span key={style} className="inline-flex items-center gap-1.5 rounded-full bg-cg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                {style}
-                <button type="button" onClick={() => removeStyle(style)} aria-label={`Remove ${style}`} className="hover:opacity-70">
-                  <FaTimes className="text-[10px]" />
-                </button>
-              </span>
-            ))}
-            <input
-              id="artStyles"
-              value={styleInput}
-              onChange={(e) => setStyleInput(e.target.value)}
-              onKeyDown={handleStyleKeyDown}
-              onBlur={() => addStyle(styleInput)}
-              placeholder={styles.length ? "" : "e.g. Anime, Watercolor"}
-              disabled={styles.length >= MAX_STYLES}
-              className="min-w-[120px] flex-1 bg-transparent px-1 text-sm text-base-content placeholder:text-cg-muted/70 focus:outline-none"
-            />
-          </div>
-          {unusedSuggestions.length > 0 && styles.length < MAX_STYLES && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {unusedSuggestions.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => addStyle(s)}
-                  className="rounded-full border border-base-300 px-2.5 py-1 text-xs text-cg-muted transition hover:border-primary hover:text-primary"
-                >
-                  + {s}
-                </button>
-              ))}
-            </div>
-          )}
+          <StyleChipsInput id="artStyles" styles={styles} onChange={setStyles} max={MAX_STYLES} />
         </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

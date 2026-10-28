@@ -20,7 +20,7 @@ const router = express.Router();
 
 // Post Routes
 router.use(authMiddleware);
-router.post("/createPost", createPost); // Create Post
+router.post("/createPost", attachMentUpload, createPost); // Create Post (optionally with an image)
 router.get("/", getAllPosts); // Get All Posts
 router.get("/getMyPosts", getUserPosts);
 router.post("/upload", attachMentUpload, upload);

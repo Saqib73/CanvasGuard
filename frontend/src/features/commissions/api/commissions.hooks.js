@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../../../lib/api-client";
 import { commissionKeys } from "./commissions.keys";
 
@@ -8,16 +8,28 @@ export const useCommissionArtists = (filters = {}) =>
   useQuery({
     queryKey: commissionKeys.artists(filters),
     queryFn: () => request({ url: "/commissions/get", params: filters }),
+    // Keep showing the last results while new filters load, instead of a skeleton per keystroke
+    placeholderData: keepPreviousData,
   });
 
-export const useCommissionRequests = () =>
+// One artist's commission profile (ArtistProfile id or User id)
+export const useCommissionArtist = (id) =>
   useQuery({
-    queryKey: commissionKeys.requests,
+    queryKey: commissionKeys.artist(id),
+    queryFn: () => request({ url: `/commissions/artist/${id}` }),
+    enabled: Boolean(id),
+  });
+
+// role: "received" (requests sent to me as an artist) or "sent" (requests I made)
+export const useCommissionRequests = (role = "received", options = {}) =>
+  useQuery({
+    queryKey: commissionKeys.requestList(role),
     queryFn: () =>
       request({
         url: "/commissions/getCommissionReqs",
-        params: { artist: true },
+        params: { artist: role === "received" },
       }),
+    ...options,
   });
 
 export const useRespondToCommission = () => {

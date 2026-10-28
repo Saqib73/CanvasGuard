@@ -4,21 +4,24 @@ function formatCount(n) {
   return String(n);
 }
 
-import { Link } from "react-router-dom";
-import { FaHeart, FaRegComment, FaRegHeart, FaRetweet, FaShare } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { MdOutlineShield } from "react-icons/md";
+import PostCaption from "./PostCaption";
+import { LuEllipsis, LuHeart, LuMessageCircle, LuRepeat2, LuShare, LuUsers } from "react-icons/lu";
 import { useDeletePost, useLikePost, useUnlikePost } from "../api/posts.hooks";
 import { useCurrentUser } from "../../auth/api/auth.hooks";
 import OptimizedImage from "../../../components/ui/OptimizedImage";
-import { BsThreeDots } from "react-icons/bs";
 import axios from "axios";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
-import { PostCardSkeleton } from "../../../components/ui/Skeleton";
+import { PostCardSkeleton } from "../../../components/ui/Skeleton";
+
 import { getAvatarUrl } from "../../../lib/avatar";
 // import { useStore } from "../store";
 
-export default function Tweet({ post }) {
+// showCommunity: false on a community's own page, where "in <community>" would be redundant
+export default function Tweet({ post, showCommunity = true }) {
   const { data: user, isLoading: loader } = useCurrentUser();
   // const [isLiked, setIsLiked] = useState(false);
   const isLiked = post.likes.includes(user._id);
@@ -31,6 +34,7 @@ export default function Tweet({ post }) {
   const isPostAuthor = post.author.userName == user.userName;
 
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   const { mutateAsync: deletePost } = useDeletePost();
 
@@ -108,12 +112,12 @@ export default function Tweet({ post }) {
   if (loader) return <PostCardSkeleton withMedia={Boolean(post?.media?.url)} />;
 
   return (
-    <div className="flex gap-3 p-4 border-b border-neutral-300 dark:border-neutral-800 hover:bg-neutral-800/50 dark:hover:bg-neutral-800/30 transition-colors duration-200">
+    <div className="flex gap-3 p-4 border-b border-cg-border hover:bg-cg-hover transition-colors duration-200">
       <Link to={`/artist/${author.userName}`}>
         <img
           alt="avatar"
           src={getAvatarUrl(post.author)}
-          className="h-10 w-10 rounded-full object-cover ring-1 ring-neutral-300 dark:ring-neutral-800"
+          className="h-10 w-10 rounded-full object-cover ring-1 ring-cg-border"
         />
       </Link>
       <div className="flex-1">
@@ -129,7 +133,7 @@ export default function Tweet({ post }) {
             </Link>
             {author?.verified && <span className="text-sky-400">✔</span>}
             <Link to={`/artist/${author.userName}`}>
-              <span className="text-neutral-500 dark:text-neutral-400">
+              <span className="text-cg-muted">
                 @{author?.userName}
               </span>
             </Link>
@@ -147,28 +151,29 @@ export default function Tweet({ post }) {
                 e.stopPropagation();
                 setOpen((p) => !p);
               }}
-              className="btn hover:bg-blue-500/40 hover:shadow-[0_0_0_3px_rgba(29,155,240,0.3)] h-5 w-5 rounded-full flex justify-center items-center"
+              aria-label="More options"
+              className="grid h-8 w-8 place-items-center rounded-full text-cg-muted transition-colors hover:bg-sky-500/10 hover:text-sky-500"
             >
-              <BsThreeDots />
+              <LuEllipsis className="text-[18px]" />
             </button>
             <ul
               tabIndex="-1"
-              className={`dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm `}
+              className={`dropdown-content menu bg-cg-surface border border-cg-border rounded-box z-1 w-52 p-2 shadow-sm `}
             >
-              <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-gray-600 hover:rounded-md hover:cursor-pointer">
+              <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-cg-hover hover:rounded-md hover:cursor-pointer">
                 <button onClick={() => setOpen((p) => !p)}>
                   Unfollow User
                 </button>
               </li>
               {!isPostAuthor && (
-                <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-gray-600 hover:rounded-md hover:cursor-pointer">
+                <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-cg-hover hover:rounded-md hover:cursor-pointer">
                   <button onClick={verifyArtTheft}>
                     Verify against Art theft
                   </button>
                 </li>
               )}
               {isPostAuthor && (
-                <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-gray-600 hover:rounded-md hover:cursor-pointer">
+                <li className="justify-start w-full h-auto min-h-0 px-1 py-2 text-left text-sm hover:bg-cg-hover hover:rounded-md hover:cursor-pointer">
                   <button onClick={handleRemove}>Delete Post</button>
                 </li>
               )}
@@ -177,11 +182,11 @@ export default function Tweet({ post }) {
 
           {isStolen && (
             <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-              <div className="bg-cg-card border border-neutral-300 dark:border-neutral-700 rounded-xl p-6 shadow-xl w-80">
+              <div className="bg-cg-surface border border-cg-border rounded-xl p-6 shadow-xl w-80">
                 <h3 className="font-semibold text-lg mb-4">
                   Art theft detected!
                 </h3>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
+                <p className="text-sm text-cg-muted mb-6">
                   This post appears to be originally yours. Do you want to
                   remove it?
                 </p>
@@ -189,7 +194,7 @@ export default function Tweet({ post }) {
                   <button
                     onClick={() => setIsStolen(false)}
                     disabled={removing}
-                    className="px-4 py-2 rounded-lg bg-neutral-200 dark:bg-neutral-800"
+                    className="px-4 py-2 rounded-lg border border-cg-border hover:bg-cg-hover"
                   >
                     Cancel
                   </button>
@@ -205,16 +210,32 @@ export default function Tweet({ post }) {
             </div>
           )}
         </div>
-        <Link
-          to={`/post/${post._id}`}
-          className="block whitespace-pre-wrap text-[15px] leading-5 mt-1 text-cg-text"
-        >
-          {post.description}
-        </Link>
+        {/* Only when the community comes populated (community feeds), so the home feed stays as is */}
+        {showCommunity && post.community?.name && (
+          <Link
+            to={`/communities/${post.community._id}`}
+            className="mt-0.5 inline-flex max-w-full items-center gap-1 text-xs text-cg-muted hover:text-cg-primary"
+          >
+            <LuUsers className="flex-shrink-0" aria-hidden="true" />
+            <span className="truncate">in {post.community.name}</span>
+          </Link>
+        )}
+        {/* Not a <Link>: hashtags inside are links themselves */}
+        {post.description && (
+          <div
+            role="link"
+            tabIndex={0}
+            onClick={() => navigate(`/post/${post._id}`)}
+            onKeyDown={(e) => e.key === "Enter" && navigate(`/post/${post._id}`)}
+            className="mt-1 cursor-pointer"
+          >
+            <PostCaption text={post.description} className="text-[15px] leading-5 text-cg-text" />
+          </div>
+        )}
         {post?.media?.url && (
           <Link
             to={`/post/${post._id}`}
-            className="mt-2 block overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-800 shadow-lg shadow-black/30"
+            className="mt-2 block overflow-hidden rounded-2xl border border-cg-border"
           >
             <OptimizedImage
               src={post.media.url}
@@ -227,54 +248,70 @@ export default function Tweet({ post }) {
             />
           </Link>
         )}
-        <div className="flex gap-2 mt-2 text-xs text-neutral-500">
-          {post.license?.includes("no_ai") && (
-            <span className="cg-chip">No AI</span>
-          )}
-          {post.license?.includes("credit_required") && (
-            <span className="cg-chip">Credit required</span>
-          )}
-          {post.license?.includes("no_commercial") && (
-            <span className="cg-chip">No commercial</span>
-          )}
-        </div>
-        <div className="flex justify-between text-neutral-500 dark:text-neutral-400 text-sm mt-3 max-w-md">
-          <button
-            className={`hover:text-sky-400 flex items-center gap-2 transition-colors duration-200`}
-            onClick={() => {}}
+        {(post.status === "processing" || post.media?.isWaterMarked || post.license?.length > 0) && (
+          <div className="flex flex-wrap gap-2 mt-2 text-xs text-cg-muted">
+            {post.status === "processing" && (
+              <span className="cg-chip gap-1 text-primary">
+                <MdOutlineShield /> Protecting… only you can see this
+              </span>
+            )}
+            {post.status !== "processing" && post.media?.isWaterMarked && (
+              <span className="cg-chip gap-1" title="Visible and invisible watermark applied">
+                <MdOutlineShield /> Watermarked
+              </span>
+            )}
+            {post.license?.includes("no_ai") && <span className="cg-chip">No AI training</span>}
+            {post.license?.includes("credit_required") && <span className="cg-chip">Credit required</span>}
+            {post.license?.includes("no_commercial") && <span className="cg-chip">No commercial use</span>}
+          </div>
+        )}
+        <div className="flex justify-between text-cg-muted text-sm mt-3 max-w-md -ml-2">
+          <Link
+            to={`/post/${post._id}`}
+            className="group flex items-center gap-1 transition-colors hover:text-sky-500"
+            aria-label="Reply"
           >
-            <FaRegComment aria-hidden="true" />
-            <span>Reply</span>
-          </button>
+            <span className="grid h-9 w-9 place-items-center rounded-full transition-colors group-hover:bg-sky-500/10">
+              <LuMessageCircle className="text-[18px]" aria-hidden="true" />
+            </span>
+            <span>{post.comments?.length ? formatCount(post.comments.length) : ""}</span>
+          </Link>
           <button
-            className={`${
+            type="button"
+            onClick={() => {}}
+            className={`group flex items-center gap-1 transition-colors ${
               isReposted ? "text-green-500" : "hover:text-green-500"
-            } flex items-center gap-2 transition-colors duration-200`}
-            onClick={() => {}}
+            }`}
+            aria-label="Repost"
           >
-            <FaRetweet aria-hidden="true" />
-            <span>
-              {/* Repost {post.reposts.size ? formatCount(post.reposts.size) : ""} */}
+            <span className="grid h-9 w-9 place-items-center rounded-full transition-colors group-hover:bg-green-500/10">
+              <LuRepeat2 className="text-[18px]" aria-hidden="true" />
             </span>
           </button>
           <button
-            className={`${
-              isLiked ? "text-pink-500" : "hover:text-pink-500"
-            } flex items-center gap-2  duration-200 transition-transform`}
+            type="button"
             onClick={toggleLike}
             disabled={isLiking || isUnliking}
+            className={`group flex items-center gap-1 transition-colors ${
+              isLiked ? "text-pink-500" : "hover:text-pink-500"
+            }`}
+            aria-label={isLiked ? "Unlike" : "Like"}
+            aria-pressed={isLiked}
           >
-            {/* <span> */}
-            {isLiked ? <FaHeart /> : <FaRegHeart />}
-            {/* </span> */}
+            <span className="grid h-9 w-9 place-items-center rounded-full transition-colors group-hover:bg-pink-500/10">
+              <LuHeart className={`text-[18px] ${isLiked ? "fill-current" : ""}`} aria-hidden="true" />
+            </span>
             <span>{post.likes?.length ? formatCount(post.likes.length) : ""}</span>
           </button>
           <button
-            className="hover:text-neutral-700 dark:hover:text-neutral-200 flex items-center gap-2 transition-colors duration-200"
+            type="button"
             onClick={() => {}}
+            className="group flex items-center gap-1 transition-colors hover:text-sky-500"
+            aria-label="Share"
           >
-            <FaShare aria-hidden="true" />
-            <span>Share</span>
+            <span className="grid h-9 w-9 place-items-center rounded-full transition-colors group-hover:bg-sky-500/10">
+              <LuShare className="text-[18px]" aria-hidden="true" />
+            </span>
           </button>
         </div>
       </div>

@@ -1,9 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../../../lib/api-client";
 import { postKeys } from "./posts.keys";
+import { communityKeys } from "../../communities/api/communities.keys";
+import { profileKeys } from "../../profiles/api/profiles.keys";
 
 const request = (config) => apiClient(config).then((response) => response.data);
-const invalidatePosts = (queryClient) => queryClient.invalidateQueries({ queryKey: postKeys.all });
+
+// A post can be on screen in the feeds, a community or a profile: refresh all of them
+const invalidatePosts = (queryClient) =>
+  Promise.all(
+    [postKeys.all, communityKeys.all, profileKeys.all].map((queryKey) =>
+      queryClient.invalidateQueries({ queryKey })
+    )
+  );
 
 export const usePosts = (filters) => useQuery({
   queryKey: postKeys.list(filters),
@@ -16,9 +25,10 @@ export const usePost = (postId) => useQuery({
   enabled: Boolean(postId),
 });
 
-export const useLikedPosts = () => useQuery({
+export const useLikedPosts = (options = {}) => useQuery({
   queryKey: postKeys.liked,
   queryFn: () => request({ url: "/user/getLikedPosts" }),
+  ...options,
 });
 
 const usePostMutation = (mutationFn) => {

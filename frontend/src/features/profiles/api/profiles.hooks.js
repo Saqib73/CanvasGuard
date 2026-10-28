@@ -3,6 +3,7 @@ import { apiClient } from "../../../lib/api-client";
 import { authKeys } from "../../auth/api/auth.keys";
 import { postKeys } from "../../posts/api/posts.keys";
 import { profileKeys } from "./profiles.keys";
+import { commissionKeys } from "../../commissions/api/commissions.keys";
 
 const request = (config) => apiClient(config).then((response) => response.data);
 
@@ -17,9 +18,23 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: (formData) => request({ url: "/user/me", method: "PUT", data: formData }),
     onSuccess: (data) => {
+      // Show the new name/photo right away, then refetch the fully populated /user/me
       queryClient.setQueryData(authKeys.currentUser, data.user);
+      queryClient.invalidateQueries({ queryKey: authKeys.currentUser });
       queryClient.invalidateQueries({ queryKey: profileKeys.all });
       queryClient.invalidateQueries({ queryKey: postKeys.all });
+    },
+  });
+};
+
+// Styles, price, delivery time, about, open for commissions
+export const useUpdateArtistProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => request({ url: "/user/me/artist", method: "PUT", data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: profileKeys.all });
+      queryClient.invalidateQueries({ queryKey: commissionKeys.all });
     },
   });
 };

@@ -3,6 +3,7 @@ import { AppLayout } from "../../components/layout/AppLayout";
 import ArtistSetupForm from "../../features/auth/pages/ArtistSetupPage";
 import Login from "../../features/auth/pages/LoginPage";
 import CommunitiesPage from "../../features/communities/pages/CommunitiesPage";
+import CommunityPage from "../../features/communities/pages/CommunityPage";
 import CreateCommunityPage from "../../features/communities/pages/CreateCommunityPage";
 import CommissionsPage from "../../features/commissions/pages/CommissionsPage";
 import CommissionDetailsPage from "../../features/commissions/pages/CommissionDetailsPage";
@@ -44,6 +45,7 @@ export function AppRouter({ user, artistSetupPending }) {
                 <Route path="/gallery" element={<Gallery />} />
                 <Route path="/prompts" element={<PromptsPage />} />
                 <Route path="/communities" element={<CommunitiesPage />} />
+                <Route path="/communities/:id" element={<CommunityPage />} />
                 <Route path="/commissions" element={<CommissionsPage />} />
                 <Route path="/commissions/:id" element={<CommissionDetailsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />

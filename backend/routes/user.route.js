@@ -7,6 +7,7 @@ import {
   getMyProfile,
   getUserProfile,
   unfollowUser,
+  updateArtistProfile,
   updateProfile,
 } from "../controllers/user.controller.js";
 import { singleProfile } from "../middleware/multer.middleware.js";
@@ -17,6 +18,7 @@ const router = express.Router();
 router.use(authMiddleware);
 router.get("/me", getMyProfile);
 router.put("/me", singleProfile, updateProfile);
+router.put("/me/artist", updateArtistProfile);
 router.get("/getLikedPosts", getAllLikedPosts);
 router.get("/notification", getAllNotifications);
 router.get("/:userName", getUserProfile); // Show User Profile (my/others)

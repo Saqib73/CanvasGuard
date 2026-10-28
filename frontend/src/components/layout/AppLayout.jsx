@@ -12,6 +12,15 @@ import { IoNotificationsOutline } from "react-icons/io5";
 import { IoCreateOutline } from "react-icons/io5";
 
 import { getAvatarUrl } from "../../lib/avatar";
+// Active link: blue pill in light mode; dark mode keeps the plain bold style for now
+const navLinkClass = ({ isActive }) =>
+  // h-auto + min-h-10: two-line labels ("Commission requests") grow the pill instead of overflowing it
+  `btn btn-ghost h-auto min-h-10 justify-start px-4 py-2 rounded-[1.5rem] flex items-center gap-3 text-left text-base leading-tight transition-colors duration-200 ${
+    isActive
+      ? "font-semibold text-cg-primary bg-cg-primary/10 dark:text-cg-text dark:bg-transparent"
+      : ""
+  }`;
+
 export const AppLayout = ({ children }) => {
   const { data: user } = useCurrentUser();
   const userName = user?.userName;
@@ -42,10 +51,9 @@ export const AppLayout = ({ children }) => {
   }, [socket]);
 
   return (
-    <div className="min-h-screen bg-base-100 text-base-content relative overflow-hidden transition-colors duration-200">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-sky-500/5 via-transparent to-yellow-500/5" />
+    <div className="min-h-screen bg-cg-bg text-cg-text relative overflow-hidden transition-colors duration-200">
       <div className="mx-auto max-w-7xl grid grid-cols-12 relative h-screen">
-        <aside className="col-span-2 border-r border-base-300 bg-base-100 p-4 space-y-6 sticky top-0 h-screen overflow-hidden transition-colors duration-200">
+        <aside className="col-span-2 border-r border-cg-border bg-cg-bg p-4 space-y-6 sticky top-0 h-screen overflow-hidden transition-colors duration-200">
           <div className="px-4 text-xl font-semibold flex items-center justify-center">
             <NavLink to={"/"}>
               <span className="bg-gradient-to-r from-sky-400 to-yellow-400 bg-clip-text text-transparent">
@@ -56,11 +64,7 @@ export const AppLayout = ({ children }) => {
           <nav className="flex flex-col gap-3">
             <NavLink
               to="/"
-              className={({ isActive }) =>
-                `btn btn-ghost justify-start px-4 py-3 rounded-full flex items-center gap-3 text-base transition-colors duration-200 ${
-                  isActive ? "font-semibold" : ""
-                }`
-              }
+              className={navLinkClass}
             >
               <span>
                 <GoHome />
@@ -69,11 +73,7 @@ export const AppLayout = ({ children }) => {
             </NavLink>
             <NavLink
               to="/communities"
-              className={({ isActive }) =>
-                `btn btn-ghost justify-start px-4 py-3 rounded-full flex items-center gap-3 text-base transition-colors duration-200 ${
-                  isActive ? "font-semibold" : ""
-                }`
-              }
+              className={navLinkClass}
             >
               <span>
                 <IoPeopleOutline />
@@ -82,11 +82,7 @@ export const AppLayout = ({ children }) => {
             </NavLink>
             <NavLink
               to="/commissions"
-              className={({ isActive }) =>
-                `btn btn-ghost justify-start px-4 py-3 rounded-full flex items-center gap-3 text-base transition-colors duration-200 ${
-                  isActive ? "font-semibold" : ""
-                }`
-              }
+              className={navLinkClass}
             >
               <span>
                 <FaMoneyBillTrendUp />
@@ -96,11 +92,7 @@ export const AppLayout = ({ children }) => {
 
             <NavLink
               to="/notifications"
-              className={({ isActive }) =>
-                `btn btn-ghost justify-start px-4 py-3 rounded-full flex items-center gap-3 text-base transition-colors duration-200 ${
-                  isActive ? "font-semibold" : ""
-                }`
-              }
+              className={navLinkClass}
             >
               <span>
                 <IoNotificationsOutline />
@@ -110,49 +102,42 @@ export const AppLayout = ({ children }) => {
 
             <NavLink
               to="/commissionRequests"
-              className={({ isActive }) =>
-                `btn btn-ghost justify-start px-4 py-3 rounded-full flex items-center gap-3 text-base transition-colors duration-200 ${
-                  isActive ? "font-semibold" : ""
-                }`
-              }
+              className={navLinkClass}
             >
               <span>
                 <VscGitPullRequestNewChanges />
               </span>
-              <span>Comm Reqs</span>
+              <span>Commission requests</span>
             </NavLink>
 
             <NavLink
               to="/createCommunity"
-              className={({ isActive }) =>
-                `btn btn-ghost justify-start px-4 py-3 rounded-full flex items-center gap-3 text-base transition-colors duration-200 ${
-                  isActive ? "font-semibold" : ""
-                }`
-              }
+              className={navLinkClass}
             >
               <span>
                 <IoCreateOutline />
               </span>
-              <span>Create your Comm</span>
+              <span>Create community</span>
             </NavLink>
           </nav>
           <div className="px-4 pt-8 flex flex-col gap-6">
+            {/* Light: blue Post, quiet Logout. Dark keeps white Post, blue Logout for now. */}
             <NavLink
               to="/post"
-              className="btn btn-secondary text-black rounded-2xl"
+              className="btn rounded-2xl border-0 bg-cg-primary text-white hover:bg-cg-primary/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
             >
               Post
             </NavLink>
 
             <button
               onClick={logoutHandler}
-              className="btn btn-primary rounded-2xl"
+              className="btn rounded-2xl border border-cg-border bg-transparent text-cg-text shadow-none hover:bg-cg-hover dark:border-0 dark:bg-cg-primary dark:text-[#082f49] dark:hover:bg-cg-primary/90"
             >
               Logout
             </button>
           </div>
         </aside>
-        <main className="col-span-7 border-r border-base-300 h-screen overflow-hidden transition-colors duration-200">
+        <main className="col-span-7 border-r border-cg-border h-screen overflow-hidden transition-colors duration-200">
           {children}
         </main>
         <aside className="col-span-3 p-4 sticky top-0 h-screen overflow-hidden">
@@ -174,11 +159,11 @@ export const AppLayout = ({ children }) => {
                   <img
                     src={getAvatarUrl(user)}
                     alt="avatar"
-                    className="h-14 w-14 rounded-full object-cover ring-2 ring-sky-500/30"
+                    className="h-14 w-14 rounded-full object-cover ring-2 ring-cg-primary/30"
                   />
                   <div>
                     <div className="font-semibold text-base">{user.name}</div>
-                    <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                    <div className="text-sm text-cg-muted">
                       @{userName}
                     </div>
                   </div>
@@ -193,34 +178,34 @@ export const AppLayout = ({ children }) => {
 
             <div className="cg-card p-5">
               <h3 className="font-semibold mb-4 text-xl">Trends for you</h3>
-              <ul className="text-base text-neutral-600 dark:text-neutral-300 space-y-4">
-                <li className="hover:text-neutral-900 dark:hover:text-white cursor-pointer flex justify-between items-center py-2 transition-colors duration-200">
+              <ul className="text-base text-cg-text space-y-4">
+                <li className="hover:text-cg-primary cursor-pointer flex justify-between items-center py-2 transition-colors duration-200">
                   <span className="font-medium">#NoAITraining</span>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-500">
+                  <span className="text-sm text-cg-muted">
                     2.1K posts
                   </span>
                 </li>
-                <li className="hover:text-neutral-900 dark:hover:text-white cursor-pointer flex justify-between items-center py-2 transition-colors duration-200">
+                <li className="hover:text-cg-primary cursor-pointer flex justify-between items-center py-2 transition-colors duration-200">
                   <span className="font-medium">#WatermarkedOnly</span>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-500">
+                  <span className="text-sm text-cg-muted">
                     1.8K posts
                   </span>
                 </li>
-                <li className="hover:text-neutral-900 dark:hover:text-white cursor-pointer flex justify-between items-center py-2 transition-colors duration-200">
+                <li className="hover:text-cg-primary cursor-pointer flex justify-between items-center py-2 transition-colors duration-200">
                   <span className="font-medium">#OpenForCollab</span>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-500">
+                  <span className="text-sm text-cg-muted">
                     945 posts
                   </span>
                 </li>
-                <li className="hover:text-neutral-900 dark:hover:text-white cursor-pointer flex justify-between items-center py-2 transition-colors duration-200">
+                <li className="hover:text-cg-primary cursor-pointer flex justify-between items-center py-2 transition-colors duration-200">
                   <span className="font-medium">#DigitalArt</span>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-500">
+                  <span className="text-sm text-cg-muted">
                     5.2K posts
                   </span>
                 </li>
-                <li className="hover:text-neutral-900 dark:hover:text-white cursor-pointer flex justify-between items-center py-2 transition-colors duration-200">
+                <li className="hover:text-cg-primary cursor-pointer flex justify-between items-center py-2 transition-colors duration-200">
                   <span className="font-medium">#ArtistRights</span>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-500">
+                  <span className="text-sm text-cg-muted">
                     678 posts
                   </span>
                 </li>
@@ -235,16 +220,16 @@ export const AppLayout = ({ children }) => {
                     <img
                       src="https://ui-avatars.com/api/?name=Art+Master&background=111827&color=fff"
                       alt="avatar"
-                      className="h-12 w-12 rounded-full ring-1 ring-neutral-800"
+                      className="h-12 w-12 rounded-full ring-1 ring-cg-border"
                     />
                     <div>
                       <div className="font-semibold text-base">Art Master</div>
-                      <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                      <div className="text-sm text-cg-muted">
                         @art_master
                       </div>
                     </div>
                   </div>
-                  <button className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-sm font-semibold rounded-full">
+                  <button className="btn btn-primary btn-sm rounded-full px-4">
                     Follow
                   </button>
                 </div>
@@ -253,16 +238,16 @@ export const AppLayout = ({ children }) => {
                     <img
                       src="https://ui-avatars.com/api/?name=Pixel+Queen&background=111827&color=fff"
                       alt="avatar"
-                      className="h-12 w-12 rounded-full ring-1 ring-neutral-800"
+                      className="h-12 w-12 rounded-full ring-1 ring-cg-border"
                     />
                     <div>
                       <div className="font-semibold text-base">Pixel Queen</div>
-                      <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                      <div className="text-sm text-cg-muted">
                         @pixel_queen
                       </div>
                     </div>
                   </div>
-                  <button className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-sm font-semibold rounded-full">
+                  <button className="btn btn-primary btn-sm rounded-full px-4">
                     Follow
                   </button>
                 </div>
@@ -271,16 +256,16 @@ export const AppLayout = ({ children }) => {
                     <img
                       src="https://ui-avatars.com/api/?name=Ink+Wizard&background=111827&color=fff"
                       alt="avatar"
-                      className="h-12 w-12 rounded-full ring-1 ring-neutral-800"
+                      className="h-12 w-12 rounded-full ring-1 ring-cg-border"
                     />
                     <div>
                       <div className="font-semibold text-base">Ink Wizard</div>
-                      <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                      <div className="text-sm text-cg-muted">
                         @ink_wizard
                       </div>
                     </div>
                   </div>
-                  <button className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-sm font-semibold rounded-full">
+                  <button className="btn btn-primary btn-sm rounded-full px-4">
                     Follow
                   </button>
                 </div>
@@ -293,31 +278,31 @@ export const AppLayout = ({ children }) => {
                 <div className="flex items-start gap-3 py-2">
                   <div className="w-3 h-3 bg-sky-500 rounded-full mt-2"></div>
                   <div>
-                    <span className="text-neutral-600 dark:text-neutral-300 font-medium">
+                    <span className="text-cg-text font-medium">
                       @inkfox
                     </span>{" "}
                     liked your post
-                    <div className="text-sm text-neutral-500">2m ago</div>
+                    <div className="text-sm text-cg-muted">2m ago</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 py-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full mt-2"></div>
                   <div>
-                    <span className="text-neutral-600 dark:text-neutral-300 font-medium">
+                    <span className="text-cg-text font-medium">
                       @pixel_painter
                     </span>{" "}
                     reposted your art
-                    <div className="text-sm text-neutral-500">15m ago</div>
+                    <div className="text-sm text-cg-muted">15m ago</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 py-2">
                   <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2"></div>
                   <div>
-                    <span className="text-neutral-600 dark:text-neutral-300 font-medium">
+                    <span className="text-cg-text font-medium">
                       @aurora_art
                     </span>{" "}
                     started following you
-                    <div className="text-sm text-neutral-500">1h ago</div>
+                    <div className="text-sm text-cg-muted">1h ago</div>
                   </div>
                 </div>
               </div>

@@ -18,6 +18,8 @@ const uploadFilesToCloudinary = async (files = []) => {
         {
           resource_type: "auto",
           public_id: uuid(),
+          // e.g. "dev" locally, so test uploads stay out of production's folders
+          folder: process.env.CLOUDINARY_FOLDER || undefined,
         },
         (err, result) => {
           if (err) return rej(err);
