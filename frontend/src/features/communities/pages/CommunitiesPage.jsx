@@ -1,228 +1,154 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { Link, useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
+import { LuPlus } from "react-icons/lu";
 import {
   useCommunities,
   useCommunityFeed,
-  useJoinCommunity,
-  useLeaveCommunity,
   useMyCommunities,
 } from "../api/communities.hooks";
-import { useCurrentUser } from "../../auth/api/auth.hooks";
-import CommunityPostCard from "../components/CommunityPostCard";
+import PostCard from "../../posts/components/PostCard";
+import MembershipButton from "../components/MembershipButton";
 import { CommunityFeedSkeleton, CommunityStripSkeleton } from "../../../components/ui/Skeleton";
 import OptimizedImage from "../../../components/ui/OptimizedImage";
 
+const TABS = [
+  ["home", "Home"],
+  ["explore", "Explore"],
+];
+
+const formatMembers = (n) =>
+  `${new Intl.NumberFormat("en", { notation: "compact" }).format(n)} ${n === 1 ? "member" : "members"}`;
+
+function CommunityCard({ community }) {
+  return (
+    <div className="flex w-[180px] flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-cg-border transition-colors hover:border-cg-primary/50">
+      <Link to={`/communities/${community._id}`} className="block">
+        <OptimizedImage
+          src={community.coverArt?.url}
+          width={community.coverArt?.width}
+          height={community.coverArt?.height}
+          blurDataUrl={community.coverArt?.blurDataUrl}
+          alt=""
+          sizes="200px"
+          wrapperClassName="h-24 w-full bg-cg-hover"
+          className="h-full w-full object-cover"
+        />
+        <div className="space-y-0.5 px-3 pt-3">
+          <div className="truncate text-sm font-semibold">{community.name}</div>
+          <div className="text-xs text-cg-muted">{formatMembers((community.members || []).length)}</div>
+        </div>
+      </Link>
+      <div className="px-3 pb-3 pt-2">
+        <MembershipButton community={community} size="btn-xs" />
+      </div>
+    </div>
+  );
+}
+
 export default function CommunitiesPage() {
-  const [activeTab, setActiveTab] = useState("home"); // "home" | "explore"
+  const [activeTab, setActiveTab] = useState("home");
   const navigate = useNavigate();
-  const { data: user } = useCurrentUser();
-  const { data: myData, isLoading: myLoading } = useMyCommunities();
-  const { data: allData, isLoading: allLoading } = useCommunities();
-  const { data: homeData, isLoading: homeLoading } = useCommunityFeed("home");
-  const { data: exploreData, isLoading: exploreLoading } = useCommunityFeed("explore");
-  const {
-    mutateAsync: joinCommunity,
-    isPending: isJoiningAny,
-    variables: joiningId,
-  } = useJoinCommunity();
-  const {
-    mutateAsync: leaveCommunity,
-    isPending: isLeavingAny,
-    variables: leavingId,
-  } = useLeaveCommunity();
 
-  // Mutation state is shared, so scope "Joining..." / "Leaving..." to the clicked card
-  const isJoining = (id) => isJoiningAny && joiningId === id;
-  const isLeaving = (id) => isLeavingAny && leavingId === id;
+  // Each tab only waits for its own data
+  const mine = useMyCommunities();
+  const all = useCommunities();
+  const homeFeed = useCommunityFeed("home");
+  const exploreFeed = useCommunityFeed("explore");
 
-  const myCommunities = myData?.communities || [];
-  const allCommunities = allData?.communities || [];
-  const homeFeed = homeData?.posts || [];
-  const exploreFeed = exploreData?.posts || [];
-  const loading = myLoading || allLoading || homeLoading || exploreLoading;
-
-  const displayedFeed = activeTab === "home" ? homeFeed : exploreFeed;
-  const stripCommunities = activeTab === "home" ? myCommunities : allCommunities;
-
-  const isCommunityMember = (community) => {
-    if (!user?._id) return false;
-    return (community.members || []).some((m) => {
-      if (typeof m === "string") return m === user._id;
-      return m?._id === user._id;
-    });
-  };
-
-  const isCommunityCreator = (community) => {
-    if (!user?._id) return false;
-    const c = community.createdBy;
-    if (!c) return false;
-    if (typeof c === "string") return c === user._id;
-    return c._id === user._id;
-  };
-
-  const handleJoin = async (id) => {
-    try {
-      await joinCommunity(id);
-      toast.success("Joined community");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Could not join community");
-    }
-  };
-
-  const handleLeave = async (id) => {
-    try {
-      await leaveCommunity(id);
-      toast.success("Left community");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Could not leave community");
-    }
-  };
-
-  const handleCommunityClick = (communityId) => {
-    console.log("Go to community", communityId);
-  };
-
-  const handleCreateCommunity = () => {
-    navigate("/createCommunity");
-  };
+  const onHome = activeTab === "home";
+  const strip = onHome ? mine : all;
+  const feed = onHome ? homeFeed : exploreFeed;
+  const stripCommunities = strip.data?.communities || [];
+  const posts = feed.data?.posts || [];
+  const hasJoinedAny = (mine.data?.communities || []).length > 0;
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Top Nav */}
-      <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 border-b border-base-300 bg-base-100/80 backdrop-blur">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => window.history.back()}
-            className="p-1 rounded-full hover:bg-base-200"
-            aria-label="Back"
-          >
-            <span className="inline-block rotate-180 text-xl">➜</span>
-          </button>
-          <h1 className="text-xl font-semibold">Communities</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleCreateCommunity}
-            className="p-2 rounded-full hover:bg-base-200"
-            aria-label="Create community"
-          >
-            👥
-          </button>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex px-4 border-b border-base-300">
-        {["home", "explore"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className="relative flex-1 py-3 text-center text-sm font-medium"
-          >
-            <span
-              className={activeTab === tab ? "font-semibold" : "opacity-60"}
+    <div className="h-full overflow-y-auto no-scrollbar">
+      <div className="sticky top-0 z-10 bg-cg-bg/80 backdrop-blur-md">
+        <div className="flex items-center justify-between gap-3 px-4 py-2">
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="btn btn-ghost btn-sm btn-circle"
+              aria-label="Go back"
             >
-              {tab === "home" ? "Home" : "Explore"}
-            </span>
-            {activeTab === tab && (
-              <span className="absolute left-1/2 -translate-x-1/2 bottom-0 h-0.5 w-10 bg-primary rounded-full" />
-            )}
-          </button>
-        ))}
+              <FaArrowLeft />
+            </button>
+            <h1 className="text-xl font-bold">Communities</h1>
+          </div>
+          <Link
+            to="/createCommunity"
+            className="btn btn-sm rounded-full border border-cg-border bg-transparent px-4 text-cg-text shadow-none hover:bg-cg-hover"
+          >
+            <LuPlus aria-hidden="true" /> Create
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 border-b border-cg-border text-center font-semibold" role="tablist">
+          {TABS.map(([key, label]) => (
+            <button
+              key={key}
+              role="tab"
+              aria-selected={activeTab === key}
+              onClick={() => setActiveTab(key)}
+              className={`py-3 transition-colors hover:bg-cg-hover ${
+                activeTab === key
+                  ? "border-b-2 border-cg-primary text-cg-primary dark:border-cg-text dark:text-cg-text"
+                  : "text-cg-muted"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Communities strip */}
-      <div className="border-b border-base-300">
-        <div className="flex gap-3 px-4 py-3 overflow-x-auto no-scrollbar">
-          {myLoading || allLoading ? (
+      <div className="border-b border-cg-border">
+        <div className="flex gap-3 overflow-x-auto px-4 py-3 no-scrollbar">
+          {strip.isLoading ? (
             <CommunityStripSkeleton />
           ) : stripCommunities.length === 0 ? (
-            <div className="text-sm opacity-60">
-              {activeTab === "home"
-                ? "Join a community to see it here."
-                : "No communities yet."}
-            </div>
+            <p className="py-2 text-sm text-cg-muted">
+              {onHome ? "Communities you join will show up here." : "No communities yet. Create the first one!"}
+            </p>
           ) : (
-            stripCommunities.map((c) => {
-              const member = isCommunityMember(c);
-              const creator = isCommunityCreator(c);
-              return (
-                <div
-                  key={c._id}
-                  className="min-w-[170px] max-w-[200px] bg-base-200 rounded-2xl overflow-hidden border border-base-300 flex-shrink-0"
-                >
-                  <button
-                    onClick={() => handleCommunityClick(c._id)}
-                    className="block w-full text-left"
-                  >
-                    <OptimizedImage
-                      src={c.coverArt?.url}
-                      width={c.coverArt?.width}
-                      height={c.coverArt?.height}
-                      blurDataUrl={c.coverArt?.blurDataUrl}
-                      alt={c.name}
-                      sizes="200px"
-                      wrapperClassName="h-24 w-full"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="p-3 space-y-1">
-                      <div className="text-sm font-semibold truncate">
-                        {c.name}
-                      </div>
-                      <div className="text-[11px] opacity-60">
-                        {(c.members || []).length} members
-                      </div>
-                    </div>
-                  </button>
-                  <div className="px-3 pb-3">
-                    {creator ? (
-                      <span className="inline-flex items-center justify-center text-[11px] px-2 py-0.5 rounded-full bg-base-300 opacity-80">
-                        Creator
-                      </span>
-                    ) : member ? (
-                      <button
-                        onClick={() => handleLeave(c._id)}
-                        disabled={isLeaving(c._id)}
-                        className="inline-flex items-center justify-center text-xs px-3 py-1 rounded-full bg-base-300 hover:bg-base-200"
-                      >
-                        {isLeaving(c._id) ? "Leaving..." : "Joined"}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleJoin(c._id)}
-                        disabled={isJoining(c._id)}
-                        className="inline-flex items-center justify-center text-xs px-3 py-1 rounded-full btn-primary"
-                      >
-                        {isJoining(c._id) ? "Joining..." : "Join"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })
+            stripCommunities.map((c) => <CommunityCard key={c._id} community={c} />)
           )}
         </div>
       </div>
 
       {/* Feed */}
-      <div className="flex-1 overflow-y-auto no-scrollbar">
-        {loading ? (
-          <CommunityFeedSkeleton />
-        ) : displayedFeed.length === 0 ? (
-          <div className="flex justify-center py-10 opacity-60">
-            No posts yet.
-          </div>
-        ) : (
-          displayedFeed.map((post) => (
-            <CommunityPostCard
-              key={post._id}
-              post={post}
-              onCommunityClick={handleCommunityClick}
-            />
-          ))
-        )}
-      </div>
+      {feed.isLoading ? (
+        <CommunityFeedSkeleton />
+      ) : feed.isError ? (
+        <p className="p-6 text-center text-cg-muted">Could not load posts. Please try again.</p>
+      ) : posts.length ? (
+        posts.map((post) => <PostCard key={post._id} post={post} />)
+      ) : onHome && !hasJoinedAny ? (
+        <div className="px-8 py-12 text-center">
+          <p className="text-lg font-semibold">Find your people</p>
+          <p className="mt-1 text-sm text-cg-muted">
+            Join communities to see their posts here.
+          </p>
+          <button
+            type="button"
+            onClick={() => setActiveTab("explore")}
+            className="btn btn-sm mt-4 rounded-full border-0 bg-cg-primary px-5 text-white hover:bg-cg-primary/90 dark:text-[#082f49]"
+          >
+            Explore communities
+          </button>
+        </div>
+      ) : (
+        <div className="px-8 py-12 text-center">
+          <p className="text-lg font-semibold">No posts yet</p>
+          <p className="mt-1 text-sm text-cg-muted">
+            {onHome ? "Posts in your communities will show up here." : "Community posts will show up here."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

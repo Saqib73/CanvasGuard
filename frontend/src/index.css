@@ -9,7 +9,7 @@
 
 @layer base {
   body {
-    @apply antialiased bg-base-100 text-base-content;
+    @apply antialiased bg-cg-bg text-cg-text;
   }
 
   /* Hide scrollbars globally */
@@ -24,12 +24,13 @@
 }
 
 @layer components {
+  /* Outlined, not filled: cards sit on the page background, separated by a border */
   .cg-card {
-    @apply card bg-base-200 border border-base-300 rounded-2xl backdrop-blur;
+    @apply card bg-cg-bg border border-cg-border rounded-2xl;
   }
 
   .cg-input {
-    @apply input bg-base-200 border border-base-300 rounded-full text-base-content;
+    @apply input bg-cg-surface border border-cg-border rounded-full text-cg-text;
   }
 
   .cg-chip {
@@ -93,6 +94,27 @@
   }
 
   .cg-skeleton {
+    animation: cg-skeleton-pulse 2s ease-in-out infinite;
+  }
+}
+
+/* Indeterminate progress bar (e.g. "Protecting your artwork…") */
+.cg-progress-indeterminate {
+  animation: cg-progress-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes cg-progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cg-progress-indeterminate {
+    width: 100%;
     animation: cg-skeleton-pulse 2s ease-in-out infinite;
   }
 }

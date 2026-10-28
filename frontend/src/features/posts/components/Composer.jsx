@@ -1,77 +1,74 @@
-import { useState } from "react";
-import toast from "react-hot-toast";
-import { useCreatePost } from "../api/posts.hooks";
-import { getErrorMessage } from "../../../lib/api-client";
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { MdOutlineImage } from "react-icons/md";
+import { useCurrentUser } from "../../auth/api/auth.hooks";
+import { getAvatarUrl } from "../../../lib/avatar";
+import { submitPost } from "../pendingPosts";
+import { postButtonClass } from "../styles";
 
+/** Quick text post at the top of the feed; adding an image opens the full post page. */
 export default function Composer() {
   const [text, setText] = useState("");
-  // const [isCreating, setIsCreating] = useState(false);
-  const { mutateAsync: createPost, isPending } = useCreatePost();
+  const { data: user } = useCurrentUser();
+  const fileInputRef = useRef(null);
+  const navigate = useNavigate();
 
-  // const handlePost = async () => {
-  //   setIsCreating(true);
+  const handlePost = () => {
+    const description = text.trim();
+    if (!description) return;
+    const formData = new FormData();
+    formData.append("description", description);
+    submitPost(formData, { description });
+    setText("");
+  };
 
-  //   const toastId = toast.loading("Creating Post...");
-  //   try {
-  //     const { data } = await axios.post(
-  //       `${import.meta.env.VITE_SERVER}/api/v1/posts/createPost`,
-  //       {
-  //         description: text,
-  //         isArt: false,
-  //       },
-  //       {
-  //         withCredentials: true,
-  //       }
-  //     );
-  //     toast.success(data.message, {
-  //       id: toastId,
-  //     });
-  //     console.log(data);
-  //   } catch (error) {
-  //     console.error(error);
-  //     toast.error(error?.response?.data?.message || "Something Went Wrong", {
-  //       id: toastId,
-  //     });
-  //   } finally {
-  //     setIsCreating(false);
-  //   }
-  // };
-
-  const handlePost = async () => {
-    try {
-      await createPost({
-        description: text,
-        isArt: false,
-      });
-      toast.success("Post created");
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    }
-    finally {
-      setText("");
-    }
+  // Image posts have options (artwork, watermark, labels), so continue on the post page
+  const handleImagePicked = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) navigate("/post", { state: { file, text } });
   };
 
   return (
-    <div className="flex gap-3 p-4 border-b border-neutral-300 dark:border-neutral-800 transition-colors duration-200">
-      <div className="h-10 w-10 rounded-full bg-neutral-300 dark:bg-neutral-700 ring-1 ring-neutral-300 dark:ring-neutral-800" />
+    <div className="flex gap-3 p-4">
+      <img
+        alt=""
+        src={getAvatarUrl(user)}
+        className="h-10 w-10 flex-shrink-0 rounded-full object-cover ring-1 ring-cg-border"
+      />
       <div className="flex-1">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="What is happening?!"
-          className="w-full bg-transparent outline-none resize-none min-h-16 text-lg placeholder:text-neutral-500 dark:placeholder:text-neutral-500 text-cg-text"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handlePost();
+          }}
+          placeholder="What is happening?! Add #tags to help people find it"
+          className="w-full bg-transparent outline-none resize-none min-h-16 text-lg placeholder:text-cg-muted text-cg-text"
         />
-        <div className="flex justify-between items-center pt-2">
-          <div className="text-neutral-500 dark:text-neutral-400 text-sm">
-            Compose
-          </div>
+        <div className="flex justify-between items-center pt-2 border-t border-cg-border">
           <button
-            disabled={isPending || !text.trim()}
-            onClick={handlePost}
-            className="btn btn-primary btn-sm rounded-full"
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="btn btn-ghost btn-sm btn-circle text-xl text-cg-primary hover:bg-cg-primary/10"
+            title="Add an image"
+            aria-label="Add an image"
           >
-            {isPending ? "Posting..." : "Post"}
+            <MdOutlineImage />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImagePicked}
+            className="hidden"
+          />
+          <button
+            disabled={!text.trim()}
+            onClick={handlePost}
+            className={postButtonClass}
+          >
+            Post
           </button>
         </div>
       </div>

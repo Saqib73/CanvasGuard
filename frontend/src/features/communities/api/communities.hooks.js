@@ -22,6 +22,14 @@ export const useCommunityFeed = (feed) =>
     queryFn: () => request({ url: `/community/feed/${feed}` }),
   });
 
+// One community with its members and posts
+export const useCommunity = (id) =>
+  useQuery({
+    queryKey: communityKeys.detail(id),
+    queryFn: () => request({ url: `/community/${id}` }),
+    enabled: Boolean(id),
+  });
+
 const useCommunityMembershipMutation = (action) => {
   const queryClient = useQueryClient();
   return useMutation({

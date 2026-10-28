@@ -14,14 +14,21 @@ export const Spinner = () => (
   <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden="true" />
 );
 
-export const Field = ({ label, htmlFor, hint, optional, children, className = "" }) => (
+// `error` replaces the hint with a red message; `aside` sits right of the label (e.g. a counter)
+export const Field = ({ label, htmlFor, hint, error, optional, aside, children, className = "" }) => (
   <div className={className}>
-    <label htmlFor={htmlFor} className="mb-1.5 flex items-baseline justify-between text-sm font-medium">
+    <label htmlFor={htmlFor} className="mb-1.5 flex items-baseline justify-between gap-3 text-sm font-medium">
       <span>{label}</span>
-      {optional && <span className="text-xs font-normal text-cg-muted">Optional</span>}
+      {aside ?? (optional && <span className="text-xs font-normal text-cg-muted">Optional</span>)}
     </label>
     {children}
-    {hint && <p className="mt-1.5 text-xs text-cg-muted">{hint}</p>}
+    {error ? (
+      <p id={htmlFor && `${htmlFor}-error`} className="mt-1.5 text-xs text-error" role="alert">
+        {error}
+      </p>
+    ) : (
+      hint && <p className="mt-1.5 text-xs text-cg-muted">{hint}</p>
+    )}
   </div>
 );
 

@@ -1,34 +1,70 @@
+/*
+ * The only place colors are defined. Everything else uses these by role:
+ *   Tailwind:  bg-cg-bg, bg-cg-surface, bg-cg-hover, border-cg-border,
+ *              text-cg-text, text-cg-muted, text-cg-primary (opacity works: bg-cg-primary/10)
+ *   daisyUI:   its --color-* variables below are derived from the same values,
+ *              so btn, select, badge, etc. match.
+ * --cg-* values are space-separated RGB so Tailwind can apply opacity.
+ */
+
 :root[data-theme="canvasguard-dark"] {
   color-scheme: dark;
-  --color-base-100: #000000;
-  --color-base-200: #18181b;
-  --color-base-300: #27272a;
-  --color-base-content: #f4f4f5;
-  --color-primary: #38bdf8;
+
+  --cg-bg: 0 0 0;               /* page and every column: one black everywhere */
+  --cg-surface: 22 24 28;       /* raised things: menus, inputs, modals */
+  --cg-hover: 10 10 10;         /* row hover on the black background */
+  --cg-border: 39 39 42;
+  --cg-text: 244 244 245;
+  --cg-muted: 161 161 170;
+  --cg-primary: 56 189 248;
+  --cg-accent: 250 204 21;
+  --cg-skeleton: 39 39 42;
+  --cg-skeleton-highlight: 63 63 70;
+  /* Kept for components not yet converted; same as surface */
+  --cg-card: var(--cg-surface);
+
+  --color-base-100: rgb(var(--cg-bg));
+  --color-base-200: rgb(var(--cg-surface));
+  --color-base-300: rgb(var(--cg-border));
+  --color-base-content: rgb(var(--cg-text));
+  --color-primary: rgb(var(--cg-primary));
   --color-primary-content: #082f49;
   --color-secondary: #f4f4f5;
   --color-secondary-content: #18181b;
   --color-accent: #a78bfa;
   --color-accent-content: #1e1b4b;
-  --color-neutral: #27272a;
-  --color-neutral-content: #f4f4f5;
-  --cg-bg: 9 9 11;
-  --cg-card: 24 24 27;
-  --cg-muted: 161 161 170;
-  --cg-primary: 56 189 248;
-  --cg-accent: 250 204 21;
-  --cg-text: 244 244 245;
-  --cg-skeleton: 39 39 42;
-  --cg-skeleton-highlight: 63 63 70;
+  --color-neutral: rgb(var(--cg-border));
+  --color-neutral-content: rgb(var(--cg-text));
+  --color-info: rgb(var(--cg-primary));
+  --color-info-content: #082f49;
+  --color-success: #34d399;
+  --color-success-content: #022c22;
+  --color-warning: #fbbf24;
+  --color-warning-content: #451a03;
+  --color-error: #fb7185;
+  --color-error-content: #4c0519;
 }
 
 :root[data-theme="canvasguard-light"] {
   color-scheme: light;
-  --color-base-100: #ffffff;
-  --color-base-200: #ffffff;
-  --color-base-300: #e4e4e7;
-  --color-base-content: #18181b;
-  --color-primary: #0284c7;
+
+  --cg-bg: 255 255 255;
+  --cg-surface: 255 255 255;
+  --cg-hover: 247 249 250;
+  --cg-border: 228 228 231;
+  --cg-text: 24 24 27;
+  --cg-muted: 82 82 91;
+  --cg-primary: 2 132 199;
+  --cg-accent: 202 138 4;
+  --cg-skeleton: 228 228 231;
+  --cg-skeleton-highlight: 244 244 245;
+  --cg-card: var(--cg-surface);
+
+  --color-base-100: rgb(var(--cg-bg));
+  --color-base-200: rgb(var(--cg-surface));
+  --color-base-300: rgb(var(--cg-border));
+  --color-base-content: rgb(var(--cg-text));
+  --color-primary: rgb(var(--cg-primary));
   --color-primary-content: #ffffff;
   --color-secondary: #ffffff;
   --color-secondary-content: #18181b;
@@ -36,12 +72,12 @@
   --color-accent-content: #ffffff;
   --color-neutral: #3f3f46;
   --color-neutral-content: #ffffff;
-  --cg-bg: 255 255 255;
-  --cg-card: 255 255 255;
-  --cg-muted: 82 82 91;
-  --cg-primary: 2 132 199;
-  --cg-accent: 202 138 4;
-  --cg-text: 24 24 27;
-  --cg-skeleton: 228 228 231;
-  --cg-skeleton-highlight: 244 244 245;
+  --color-info: rgb(var(--cg-primary));
+  --color-info-content: #ffffff;
+  --color-success: #059669;
+  --color-success-content: #ffffff;
+  --color-warning: #d97706;
+  --color-warning-content: #ffffff;
+  --color-error: #e11d48;
+  --color-error-content: #ffffff;
 }
