@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import { uploadFilesToCloudinary } from "../features/uploadFilesToCoudinary.js";
 import { ArtistProfile } from "../model/ArtistProfile.js";
 import { CommissionDetail } from "../model/CommissionDetail.js";
+import { Media, MEDIA_PUBLIC_FIELDS } from "../model/Media.js";
+import { PUBLISHED, Post } from "../model/Post.js";
 import { ErrorHandler } from "../utils/ErrorHandler.js";
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -21,6 +23,45 @@ const withStatus = (req) => ({
 // Older requests stored the ArtistProfile id as artistId; match both
 const artistIdsFor = (user) =>
   [user._id, user.artistProfile].filter(Boolean);
+
+const RECENT_WORK_COUNT = 3;
+
+// Each artist's latest published image posts, for the thumbnails on the artist list.
+// One aggregation for the whole list ($topN keeps only the newest N per author).
+const recentWorkByArtist = async (userIds) => {
+  if (!userIds.length) return new Map();
+
+  const groups = await Post.aggregate([
+    { $match: { author: { $in: userIds }, media: { $ne: null }, ...PUBLISHED } },
+    {
+      $group: {
+        _id: "$author",
+        posts: {
+          $topN: {
+            n: RECENT_WORK_COUNT,
+            sortBy: { createdAt: -1 },
+            output: { _id: "$_id", media: "$media" },
+          },
+        },
+      },
+    },
+  ]);
+
+  const mediaIds = groups.flatMap((g) => g.posts.map((p) => p.media));
+  const media = await Media.find({ _id: { $in: mediaIds }, type: "image" })
+    .select(MEDIA_PUBLIC_FIELDS)
+    .lean();
+  const mediaById = new Map(media.map((m) => [m._id.toString(), m]));
+
+  return new Map(
+    groups.map((g) => [
+      g._id.toString(),
+      g.posts
+        .map((p) => ({ _id: p._id, media: mediaById.get(p.media.toString()) }))
+        .filter((p) => p.media),
+    ])
+  );
+};
 
 ///artists?open=true&style=anime&minFee=50&maxFee=300&sort=fee_low
 export const getArtists = async (req, res, next) => {
@@ -51,10 +92,39 @@ export const getArtists = async (req, res, next) => {
     else if (sort === "fee_high") q.sort({ baseFee: -1 });
     else if (sort === "newest") q.sort({ createdAt: -1 });
 
-    const artists = await q;
+    const artists = await q.lean();
+    const recentWork = await recentWorkByArtist(artists.map((a) => a.user?._id).filter(Boolean));
+
     res.json({
       success: true,
-      artists,
+      artists: artists.map((a) => ({
+        ...a,
+        recentWork: recentWork.get(a.user?._id?.toString()) || [],
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// One artist's public commission profile, for the top of the request form.
+// :id is the ArtistProfile id (what the client links to); a User id works too.
+export const getArtist = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id))
+      return next(new ErrorHandler("Artist not found", 404));
+
+    const artist = await ArtistProfile.findOne({ $or: [{ _id: id }, { user: id }] })
+      .select("user artStyles baseFee deliveryTime openForCommission bio")
+      .populate("user", "name userName profilePic")
+      .lean();
+    if (!artist?.user) return next(new ErrorHandler("Artist not found", 404));
+
+    const recentWork = await recentWorkByArtist([artist.user._id]);
+    return res.json({
+      success: true,
+      artist: { ...artist, recentWork: recentWork.get(artist.user._id.toString()) || [] },
     });
   } catch (err) {
     next(err);
@@ -81,6 +151,11 @@ export const sendCommissionRequest = async (req, res, next) => {
     if (artistProfile.user.toString() === customerId.toString())
       return next(new ErrorHandler("You can't commission yourself", 400));
 
+    if (!artistProfile.openForCommission)
+      return next(
+        new ErrorHandler("This artist isn't taking commissions right now", 409)
+      );
+
     const deadlineDate = new Date(deadline);
     if (!deadline || Number.isNaN(deadlineDate.getTime()))
       return next(new ErrorHandler("Please give an idea about deadline", 400));
@@ -95,17 +170,45 @@ export const sendCommissionRequest = async (req, res, next) => {
         new ErrorHandler("Please describe the commission you want", 400)
       );
 
-    let parsedShippingDetails;
-    try {
-      parsedShippingDetails = JSON.parse(shippingDetails || "{}");
-    } catch {
-      return next(new ErrorHandler("Invalid shipping details", 400));
+    // Older clients don't send deliveryType and always sent an address
+    const deliveryType = req.body.deliveryType === "digital" ? "digital" : "physical";
+
+    let shipping;
+    if (deliveryType === "physical") {
+      let parsed;
+      try {
+        parsed = JSON.parse(shippingDetails || "{}");
+      } catch {
+        return next(new ErrorHandler("Invalid shipping details", 400));
+      }
+      const { country, state, postal, city } = parsed;
+      if (!country?.trim() || !state?.trim() || !String(postal ?? "").trim())
+        return next(
+          new ErrorHandler("Please add a shipping address for a physical piece", 400)
+        );
+      shipping = {
+        country: country.trim(),
+        state: state.trim(),
+        postal: String(postal).trim(),
+        city: city?.trim(),
+      };
     }
-    const { country, state, postal, city } = parsedShippingDetails;
-    if (!country?.trim() || !state?.trim() || !String(postal ?? "").trim())
+
+    const price = toNumber(req.body.price);
+    if (price !== undefined && price < (artistProfile.baseFee || 0))
       return next(
-        new ErrorHandler("Please provide necessary shipping details", 400)
+        new ErrorHandler(
+          `Your budget must be at least the artist's starting price (₹${artistProfile.baseFee})`,
+          400
+        )
       );
+
+    const style = artStyle?.trim() || undefined;
+    if (style && style.length > 50)
+      return next(new ErrorHandler("Art style is too long", 400));
+
+    if (files[0] && !files[0].mimetype?.startsWith("image/"))
+      return next(new ErrorHandler("The reference must be an image", 400));
 
     // 2️⃣ Upload the reference image only once the request is valid
     let refrences;
@@ -119,15 +222,11 @@ export const sendCommissionRequest = async (req, res, next) => {
 
     const request = await CommissionDetail.create({
       deadline: deadlineDate,
-      artStyle,
-      price: toNumber(req.body.price),
+      artStyle: style,
+      price,
       description: description.trim(),
-      shippingDetails: {
-        country: country.trim(),
-        state: state.trim(),
-        postal: String(postal).trim(),
-        city: city?.trim(),
-      },
+      deliveryType,
+      ...(shipping && { shippingDetails: shipping }),
       artistId: artistProfile.user,
       customerId,
       refrences,

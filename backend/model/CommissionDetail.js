@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 export const COMMISSION_STATUSES = ["pending", "accepted", "declined"];
+export const DELIVERY_TYPES = ["digital", "physical"];
 
 const commissionDetailSchema = new Schema(
   {
@@ -39,22 +40,25 @@ const commissionDetailSchema = new Schema(
     description: {
       type: String,
     },
+    // Requests made before this field existed always had an address: treat missing as "physical"
+    deliveryType: {
+      type: String,
+      enum: DELIVERY_TYPES,
+    },
+    // Only for physical delivery; the controller requires country, state and postal then
     shippingDetails: {
       country: {
         type: String,
-        required: true,
       },
       city: {
         type: String,
       },
       state: {
         type: String,
-        required: true,
       },
       // String: postal codes can have letters (UK, Canada) and leading zeros
       postal: {
         type: String,
-        required: true,
       },
     },
     status: {

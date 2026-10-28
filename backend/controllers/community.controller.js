@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { uploadFilesToCloudinary } from "../features/uploadFilesToCoudinary.js";
 import { Community } from "../model/Community.js";
 import { MEDIA_PUBLIC_FIELDS } from "../model/Media.js";
-import { Post } from "../model/Post.js";
+import { PUBLISHED, Post } from "../model/Post.js";
 import { User } from "../model/User.js";
 import { ErrorHandler } from "../utils/ErrorHandler.js";
 
@@ -10,11 +10,14 @@ const AUTHOR_FIELDS = "userName name profilePic";
 
 // Community feed posts with only client-safe media fields
 const findCommunityPosts = (filter) =>
-  Post.find(filter)
+  Post.find({ ...filter, ...PUBLISHED })
     .sort({ createdAt: -1 })
     .populate("author", AUTHOR_FIELDS)
     .populate("community", "name coverArt")
     .populate("media", MEDIA_PUBLIC_FIELDS);
+
+// Same limits as the create form
+const LIMITS = { name: 50, description: 300, rules: 1000 };
 
 // Create a new community
 export const createCommunity = async (req, res, next) => {
@@ -27,8 +30,16 @@ export const createCommunity = async (req, res, next) => {
     // Validate before uploading so failures don't leave orphaned images
     if (!name || !description)
       return next(new ErrorHandler("Name and description are required", 400));
+    if (name.length > LIMITS.name)
+      return next(new ErrorHandler(`Name can be at most ${LIMITS.name} characters`, 400));
+    if (description.length > LIMITS.description)
+      return next(new ErrorHandler(`Description can be at most ${LIMITS.description} characters`, 400));
+    if (rules.length > LIMITS.rules)
+      return next(new ErrorHandler(`Rules can be at most ${LIMITS.rules} characters`, 400));
     if (files.length < 1)
       return next(new ErrorHandler("Please upload a cover image", 400));
+    if (!files[0].mimetype?.startsWith("image/"))
+      return next(new ErrorHandler("The cover must be an image", 400));
 
     const nameTaken = await Community.exists({
       name: { $regex: `^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" },
